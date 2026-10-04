@@ -24,6 +24,9 @@ DRY = os.getenv("DRY_RUN") == "1"
 MAX_NEW = int(os.getenv("MAX_NEW_PER_RUN", "60"))     # cost guard for the AI step
 MAX_TG = int(os.getenv("MAX_TELEGRAM_PER_RUN", "5"))
 MAX_EMAILS = int(os.getenv("MAX_EMAILS_PER_DAY", "95"))  # Resend free tier = 100/day
+# collect = scrape + AI (must run from an Indian IP: DGFT blocks GitHub's US servers)
+# publish = Telegram + email + website (runs on GitHub)
+STAGES = {x.strip() for x in os.getenv("STAGES", "collect,publish").split(",")}
 
 
 def main() -> int:
@@ -36,6 +39,15 @@ def main() -> int:
     db, report, errors = DB(), [], []
     now = datetime.now(IST)
 
+    new, sent = [], 0
+    if "collect" in STAGES:
+        new = collect(cfg, sectors, db, report, errors)
+    if "publish" in STAGES:
+        sent = publish(sectors, db, now, report, errors)
+    return finish(report, errors, now, new, sent)
+
+
+def collect(cfg, sectors, db, report, errors) -> list:
     # 1. Watch
     found = []
     for src in cfg["sources"]:
@@ -61,6 +73,13 @@ def main() -> int:
             db.insert_notice(n)
         except Exception as ex:
             errors.append(f"summarise {n['id']} ({n['title'][:50]}): {ex!r}")
+    return new
+
+
+def publish(sectors, db, now, report, errors) -> int:
+    # Health check: has the collector (your PC / Indian server) run recently?
+    if not db.notices_since((now - timedelta(days=3)).isoformat()):
+        errors.append("no new notices stored in 3 days — is the collector on your PC running?")
 
     # 3. Publish — Telegram (free channel = marketing)
     fresh = [n for n in db.notices_since((now - timedelta(days=2)).isoformat())
@@ -113,18 +132,21 @@ def main() -> int:
         report.append(f"site pages: {sitegen.build(db.all_notices(), sectors)}")
     except Exception as ex:
         errors.append(f"site build: {ex!r}")
+    return sent
 
+
+def finish(report, errors, now, new, sent) -> int:
     # 6. Owner ops report (your 2-minute daily check)
     text = "\n".join(report + (["", "ERRORS:"] + errors if errors else ["", "No errors."]))
     print(text)
     owner = os.getenv("OWNER_EMAIL")
-    if owner and not DRY and os.getenv("RESEND_API_KEY"):
+    if owner and not DRY and os.getenv("RESEND_API_KEY") and "publish" in STAGES:
         try:
             digest.send_email(owner, f"[ops] {'⚠ ' + str(len(errors)) + ' error(s)' if errors else 'OK'} — {now:%d %b}",
                               f"<pre>{text}</pre>", digest.SITE_URL)
         except Exception:
             traceback.print_exc()
-    return 1 if errors and not new and not sent else 0
+    return 0  # problems are reported in the ops email; never block the website deploy
 
 
 if __name__ == "__main__":

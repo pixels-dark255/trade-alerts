@@ -2,3 +2,4 @@
 __pycache__/
 src/public/
 .pytest_cache/
+collect.log

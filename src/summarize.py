@@ -15,7 +15,7 @@ Read this {authority} {kind} and return ONLY a JSON object with these keys:
 - "who_is_affected": one sentence (products, HS chapters, importers/exporters)
 - "action_required": one concrete sentence, or "No action needed"
 - "deadline": "YYYY-MM-DD" if an effective/compliance date is stated, else null
-- "hs_codes": list of HS codes/chapters mentioned, digits only (e.g. ["39","392310"]), [] if none
+- "hs_codes": up to 15 HS codes/chapters mentioned, digits only (e.g. ["39","392310"]); if more than 15, list only the 2-digit chapters; [] if none
 - "sectors": subset of {sectors}
 - "impact": "high" (new ban/restriction/duty/deadline), "medium" (procedure change, allocation), or "low" (corrigendum, info)
 - "headline_hi": the headline in simple Hindi
@@ -61,6 +61,6 @@ def summarize(notice: dict, sectors: list[str], client=None, pdf: bytes | None =
         content.insert(0, {"type": "document", "source": {
             "type": "base64", "media_type": "application/pdf",
             "data": base64.standard_b64encode(pdf).decode()}})
-    msg = client.messages.create(model=MODEL, max_tokens=700,
+    msg = client.messages.create(model=MODEL, max_tokens=1500,
                                  messages=[{"role": "user", "content": content}])
     return normalise(_extract_json(msg.content[0].text), sectors)
