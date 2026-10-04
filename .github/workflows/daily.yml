@@ -1,0 +1,41 @@
+name: daily-alerts
+on:
+  schedule:
+    - cron: "15 1 * * *"      # 06:45 IST every day
+  workflow_dispatch: {}        # "Run workflow" button for manual runs
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: github-pages
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - name: Watch → analyse → publish
+        working-directory: src
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          OWNER_EMAIL: ${{ secrets.OWNER_EMAIL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL: ${{ secrets.TELEGRAM_CHANNEL }}
+          SITE_NAME: ${{ vars.SITE_NAME }}
+          SITE_URL: ${{ vars.SITE_URL }}
+          PAY_LINK_PRO: ${{ vars.PAY_LINK_PRO }}
+          PAY_LINK_FIRM: ${{ vars.PAY_LINK_FIRM }}
+        run: python run_daily.py
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: src/public }
+      - uses: actions/deploy-pages@v4

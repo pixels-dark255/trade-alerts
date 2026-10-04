@@ -1,0 +1,47 @@
+# Each source is scraped daily. type: html_table (generic table parser) or rss.
+# Add more sources here — no code change needed for table-style government pages.
+sources:
+  - id: dgft_notification
+    authority: DGFT
+    kind: Notification
+    type: html_table
+    url: https://www.dgft.gov.in/CP/?opt=notification
+
+  - id: dgft_public_notice
+    authority: DGFT
+    kind: Public Notice
+    type: html_table
+    url: https://www.dgft.gov.in/CP/?opt=public-notice
+
+  - id: dgft_trade_notice
+    authority: DGFT
+    kind: Trade Notice
+    type: html_table
+    url: https://www.dgft.gov.in/CP/?opt=trade-notice
+
+  # --- Phase 2 (verify the URL works, then uncomment) ---
+  # - id: cbic_customs_tariff
+  #   authority: CBIC
+  #   kind: Customs Notification
+  #   type: html_table
+  #   url: <CBIC customs tariff notifications listing page>
+  # - id: bis_qco
+  #   authority: BIS
+  #   kind: Quality Control Order
+  #   type: html_table
+  #   url: <BIS QCO listing page>
+
+# Fixed sector list used by the AI tagger and the signup form
+sectors:
+  - Agri & Food
+  - Chemicals & Pharma
+  - Plastics & Packaging
+  - Textiles & Apparel
+  - Gems & Jewellery
+  - Engineering & Metals
+  - Electronics & IT Hardware
+  - Leather & Footwear
+  - Handicrafts & Home
+  - Automobile & Parts
+  - Energy & Minerals
+  - Services & Procedures (all exporters)
