@@ -11,6 +11,7 @@ import yaml
 
 import envfile
 envfile.load()
+envfile.clean()
 
 import digest
 import scrape

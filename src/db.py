@@ -8,8 +8,8 @@ import httpx
 
 class DB:
     def __init__(self, url: str | None = None, key: str | None = None):
-        url = url or os.environ["SUPABASE_URL"]
-        key = key or os.environ["SUPABASE_SERVICE_KEY"]
+        url = (url or os.environ["SUPABASE_URL"]).strip()
+        key = (key or os.environ["SUPABASE_SERVICE_KEY"]).strip()  # pasted secrets often end in a newline
         self.c = httpx.Client(base_url=f"{url.rstrip('/')}/rest/v1", timeout=30, headers={
             "apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json",
         })

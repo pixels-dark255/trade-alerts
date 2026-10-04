@@ -12,3 +12,10 @@ def load() -> None:
         if line and not line.startswith("#") and "=" in line:
             k, v = line.split("=", 1)
             os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+
+
+def clean() -> None:
+    """Strip stray spaces/newlines from pasted secrets (GitHub Secrets keep them)."""
+    for k, v in list(os.environ.items()):
+        if k.startswith(("SUPABASE_", "ANTHROPIC_", "RESEND_", "TELEGRAM_", "MAIL_", "OWNER_", "SITE_", "PAY_")):
+            os.environ[k] = v.strip()
