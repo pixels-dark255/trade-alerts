@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 
+import legal
 from digest import SITE_NAME, SITE_URL, rank
 
 e = html.escape
@@ -29,7 +30,17 @@ def page(title: str, body: str, desc: str = "") -> str:
 <header><div class="w"><a href="{SITE_URL}/"><b>{e(SITE_NAME)}</b></a>
 <div class="m" style="color:#b9c6d8">Plain-English alerts on DGFT, Customs &amp; BIS changes — matched to your HS codes</div></div></header>
 <main class="w">{body}</main><footer class="w">Summaries are AI-generated from official notices for information only.
-Always verify with the official text. Not legal advice.</footer></body></html>"""
+Always verify with the official text. Not legal advice.<br><br>{footer_links()}</footer></body></html>"""
+
+
+def footer_links() -> str:
+    tg = os.getenv("TELEGRAM_CHANNEL", "").strip().lstrip("@")
+    links = [f'<a href="{SITE_URL}/{f}">{t}</a>' for f, t in
+             (("privacy.html", "Privacy"), ("terms.html", "Terms"), ("refund.html", "Refunds"), ("contact.html", "Contact"))]
+    if tg:
+        links.append(f'<a href="https://t.me/{e(tg)}">Telegram</a>')
+    company = e(os.getenv("LEGAL_NAME") or "DharaLabs")
+    return " · ".join(links) + f"<br>© {company}"
 
 
 def notice_card(n: dict, link: bool = True) -> str:
@@ -64,8 +75,8 @@ if(r.ok)ev.target.reset();}}catch(_){{m.textContent='Network error — try again
 
 
 def pricing() -> str:
-    pro = os.getenv("PAY_LINK_PRO", "#signup")
-    firm = os.getenv("PAY_LINK_FIRM", "#signup")
+    pro = (os.getenv("PAY_LINK_PRO") or "#signup")
+    firm = (os.getenv("PAY_LINK_FIRM") or "#signup")
     return f"""<h2 id="pricing">Plans</h2><div class="grid">
 <div class="card"><b>Free</b><div class="price">₹0</div><div class="m">Weekly digest of the most important changes.</div></div>
 <div class="card"><b>Pro</b><div class="price">₹299<span class="m">/mo</span></div>
@@ -97,8 +108,10 @@ def build(notices: list[dict], sectors: list[str], out: str = "public") -> int:
 <script>const C={cfg};const t=new URLSearchParams(location.search).get('t');
 fetch(C.url+'/rest/v1/rpc/unsubscribe',{{method:'POST',headers:{{apikey:C.key,Authorization:'Bearer '+C.key,'Content-Type':'application/json'}},
 body:JSON.stringify({{token:t}})}}).then(r=>document.getElementById('u').textContent=r.ok?'You have been unsubscribed.':'Link invalid or expired.');</script>"""), encoding="utf-8")
-    urls = [f"{SITE_URL}/"] + [f"{SITE_URL}/n/{n['id']}.html" for n in ranked]
+    urls = [f"{SITE_URL}/"] + [f"{SITE_URL}/{f}" for f in legal.pages()] + [f"{SITE_URL}/n/{n['id']}.html" for n in ranked]
     (root / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
                                       + "".join(f"<url><loc>{u}</loc></url>" for u in urls) + "</urlset>", encoding="utf-8")
+    for fname, (title, body) in legal.pages().items():
+        (root / fname).write_text(page(f"{title} — {SITE_NAME}", f'<div class="card">{body}</div>'), encoding="utf-8")
     (root / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {SITE_URL}/sitemap.xml\n", encoding="utf-8")
     return len(ranked)

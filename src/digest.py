@@ -6,8 +6,8 @@ import os
 
 import httpx
 
-SITE_NAME = os.getenv("SITE_NAME", "Trade Alerts India")
-SITE_URL = os.getenv("SITE_URL", "https://example.github.io/trade-alerts").rstrip("/")
+SITE_NAME = os.getenv("SITE_NAME") or "Trade Alerts India"
+SITE_URL = (os.getenv("SITE_URL") or "https://example.github.io/trade-alerts").strip().rstrip("/")
 ALL_SECTOR = "Services & Procedures (all exporters)"
 IMPACT_ORDER = {"high": 0, "medium": 1, "low": 2}
 
