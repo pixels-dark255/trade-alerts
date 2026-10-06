@@ -14,7 +14,7 @@ Read this {authority} {kind} and return ONLY a JSON object with these keys:
 - "summary": 2-3 short sentences, no jargon
 - "who_is_affected": one sentence (products, HS chapters, importers/exporters)
 - "action_required": one concrete sentence, or "No action needed"
-- "deadline": "YYYY-MM-DD" if an effective/compliance date is stated, else null
+- "deadline": "YYYY-MM-DD" = the last date by which the reader must DO something (apply, submit, comply, surrender), else null. An effective date or validity end is not a deadline - mention it in the summary instead
 - "hs_codes": up to 15 HS codes/chapters mentioned, digits only (e.g. ["39","392310"]); if more than 15, list only the 2-digit chapters; [] if none
 - "sectors": subset of {sectors}
 - "impact": "high" (new ban/restriction/duty/deadline), "medium" (procedure change, allocation), or "low" (corrigendum, info)
@@ -63,4 +63,13 @@ def summarize(notice: dict, sectors: list[str], client=None, pdf: bytes | None =
             "data": base64.standard_b64encode(pdf).decode()}})
     msg = client.messages.create(model=MODEL, max_tokens=1500,
                                  messages=[{"role": "user", "content": content}])
-    return normalise(_extract_json(msg.content[0].text), sectors)
+    data = normalise(_extract_json(msg.content[0].text), sectors)
+    return drop_past_deadline(data, notice.get("notice_date"))
+
+
+def drop_past_deadline(data: dict, notice_date: str | None) -> dict:
+    """A 'deadline' on or before the notice date is really an effective date, not an action date."""
+    d = data.get("deadline")
+    if d and notice_date and str(d)[:10] <= str(notice_date)[:10]:
+        data["deadline"] = None
+    return data

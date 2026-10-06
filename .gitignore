@@ -3,3 +3,4 @@ __pycache__/
 src/public/
 .pytest_cache/
 collect.log
+qa_report.html
