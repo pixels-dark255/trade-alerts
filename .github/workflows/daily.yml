@@ -36,6 +36,11 @@ jobs:
           SITE_URL: ${{ vars.SITE_URL }}
           PAY_LINK_PRO: ${{ vars.PAY_LINK_PRO }}
           PAY_LINK_FIRM: ${{ vars.PAY_LINK_FIRM }}
+          LEGAL_NAME: ${{ vars.LEGAL_NAME }}
+          CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
+          CONTACT_PHONE: ${{ vars.CONTACT_PHONE }}
+          BUSINESS_ADDRESS: ${{ vars.BUSINESS_ADDRESS }}
+          JURISDICTION: ${{ vars.JURISDICTION }}
         run: python run_daily.py
       - uses: actions/upload-pages-artifact@v3
         with: { path: src/public }
