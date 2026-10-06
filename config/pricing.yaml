@@ -1,0 +1,10 @@
+# Razorpay Payment Page URLs (public, not secret). Edit here when links change.
+plans:
+  - name: Pro
+    blurb: Daily alerts matched to your HS codes & sector, deadlines, Hindi line.
+    monthly: {price: 299, url: "https://rzp.io/rzp/sagarlekh-pro-monthly"}
+    yearly:  {price: 2999, url: "https://rzp.io/rzp/sagarlekh-pro-yearly"}
+  - name: Firm
+    blurb: For CAs, CHAs & consultants — up to 25 client profiles.
+    monthly: {price: 1999, url: "https://rzp.io/rzp/sagarlekh-firm-monthly"}
+    yearly:  {price: 19999, url: "https://rzp.io/rzp/sagarlekh-firm-yearly"}

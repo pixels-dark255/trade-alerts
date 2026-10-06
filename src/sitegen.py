@@ -74,15 +74,37 @@ m.textContent=r.ok?'Done! Your first weekly digest arrives within 7 days.':(r.st
 if(r.ok)ev.target.reset();}}catch(_){{m.textContent='Network error — try again.'}}}};</script>"""
 
 
+def _inr(n: int) -> str:
+    s = str(n)
+    if len(s) <= 3:
+        return s
+    head, tail = s[:-3], s[-3:]
+    parts = []
+    while len(head) > 2:
+        parts.insert(0, head[-2:]); head = head[:-2]
+    if head:
+        parts.insert(0, head)
+    return ",".join(parts) + "," + tail
+
+
 def pricing() -> str:
-    pro = (os.getenv("PAY_LINK_PRO") or "#signup")
-    firm = (os.getenv("PAY_LINK_FIRM") or "#signup")
-    return f"""<h2 id="pricing">Plans</h2><div class="grid">
-<div class="card"><b>Free</b><div class="price">₹0</div><div class="m">Weekly digest of the most important changes.</div></div>
-<div class="card"><b>Pro</b><div class="price">₹299<span class="m">/mo</span></div>
-<div class="m">Daily alerts matched to your HS codes &amp; sector, deadlines, Hindi line.</div><a href="{e(pro)}">Upgrade →</a></div>
-<div class="card"><b>Firm</b><div class="price">₹1,999<span class="m">/mo</span></div>
-<div class="m">For CAs, CHAs &amp; consultants: up to 25 client profiles.</div><a href="{e(firm)}">Contact →</a></div></div>"""
+    import yaml
+    f = Path(__file__).resolve().parents[1] / "config" / "pricing.yaml"
+    plans = yaml.safe_load(f.read_text(encoding="utf-8"))["plans"] if f.exists() else []
+    btn = ('display:inline-block;padding:8px 12px;margin:6px 6px 0 0;border-radius:6px;'
+           'text-decoration:none;font-weight:600;font-size:14px')
+    cards = ['<div class="card"><b>Free</b><div class="price">₹0</div>'
+             '<div class="m">Weekly digest of the most important changes.</div>'
+             '<a href="#signup" style="' + btn + ';background:#eef2f7;color:#1d2433">Subscribe free</a></div>']
+    for p in plans:
+        m, y = p["monthly"], p["yearly"]
+        save = m["price"] * 12 - y["price"]
+        cards.append(f"""<div class="card"><b>{e(p['name'])}</b><div class="price">₹{_inr(m['price'])}<span class="m">/mo</span></div>
+<div class="m">{e(p['blurb'])}</div>
+<a href="{e(m['url'])}" style="{btn};background:#1f6feb;color:#fff">Monthly ₹{_inr(m['price'])}</a>
+<a href="{e(y['url'])}" style="{btn};background:#0f2a4a;color:#fff">Yearly ₹{_inr(y['price'])}</a>
+<div class="m" style="margin-top:6px">Yearly saves ₹{_inr(save)}. Use the same email you subscribed with.</div></div>""")
+    return '<h2 id="pricing">Plans</h2><div class="grid">' + "".join(cards) + "</div>"
 
 
 def build(notices: list[dict], sectors: list[str], out: str = "public") -> int:
