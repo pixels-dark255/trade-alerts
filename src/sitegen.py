@@ -100,6 +100,8 @@ footer .w{display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between}foo
 .cmp th{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--teal)}.cmp td:first-child{font-weight:600}.cmp tr:last-child td{border-bottom:0}
 .faq{padding:16px 20px;margin:10px 0}.faq summary{cursor:pointer;font-weight:600;font-size:16px}.faq p{margin:10px 0 0;color:#33475B}
 .cal{font-size:14px}
+.filters{display:grid;grid-template-columns:minmax(0,1fr) 180px 160px;gap:10px;padding:14px}.filters input,.filters select{margin:0}
+@media(max-width:640px){.filters{grid-template-columns:1fr}}
 @media(max-width:640px){.nav nav{gap:14px;font-size:14px}.nav .btn{padding:9px 14px}.rows{grid-template-columns:1fr}.hero{padding-top:32px}}
 @media(max-width:560px){.nav nav a:not(.btn){display:none}.nav .w{flex-wrap:nowrap}}"""
 
@@ -122,7 +124,7 @@ def page(title: str, body: str, desc: str = "") -> str:
 <meta name="description" content="{e(desc)}"><meta name="theme-color" content="#0f2a4a">
 <link rel="icon" href="{SITE_URL}/assets/favicon.svg" type="image/svg+xml"><link rel="icon" href="{SITE_URL}/assets/favicon.ico" sizes="any"><link rel="apple-touch-icon" href="{SITE_URL}/assets/apple-touch-icon.png">{FONTS}<style>{CSS}</style></head><body>
 <header class="nav"><div class="w">{brand_link()}
-<nav><a href="{SITE_URL}/#latest">Latest notices</a><a href="{SITE_URL}/#pricing">Plans</a><a href="{SITE_URL}/#faq">FAQ</a>{tg_link}
+<nav><a href="{SITE_URL}/alerts.html">All alerts</a><a href="{SITE_URL}/#pricing">Plans</a><a href="{SITE_URL}/#faq">FAQ</a>{tg_link}
 <a class="btn" href="{SITE_URL}/#signup">Subscribe free</a></nav></div></header>
 <main class="w">{body}</main>
 <footer><div class="w"><div>{brand_link()}
@@ -247,6 +249,33 @@ def trust() -> str:
         f'<div>{icon(i, 26)}<div><b>{t}</b><span>{d}</span></div></div>' for i, t, d in items) + "</div>"
 
 
+def alerts_page(notices: list[dict]) -> str:
+    """Separate page with every alert, newest first, plus instant search and filters (no server needed)."""
+    kinds = sorted({n["kind"] for n in notices})
+    cards = []
+    for n in notices:
+        s = n.get("summary") or {}
+        hay = " ".join(str(x) for x in (s.get("headline"), s.get("summary"), n.get("title"), n.get("number"),
+                                         " ".join(n.get("hs_codes") or []))).lower()
+        cards.append(f'<div class="item" data-k="{e(n["kind"])}" data-i="{e(n.get("impact") or "low")}" '
+                     f'data-t="{e(hay)}">{notice_card(n)}</div>')
+    kopts = "".join(f'<option>{e(k)}</option>' for k in kinds)
+    return f"""<div class="page-h"><div class="eyebrow"><i></i>Archive</div><h1>All alerts</h1>
+<p class="m" style="font-size:15px">Every DGFT notification, public notice and trade notice we have summarised, newest first.
+Want only the ones for your HS codes? <a href="{SITE_URL}/#signup">Subscribe free</a>.</p></div>
+<div class="card filters"><input id="q" type="search" placeholder="Search by word, notice number or HS code (e.g. 3923)">
+<select id="fk"><option value="">All types</option>{kopts}</select>
+<select id="fi"><option value="">All impact</option><option value="high">High impact</option><option value="medium">Medium impact</option><option value="low">Low impact</option></select></div>
+<div class="m" id="count">{len(notices)} alerts</div>
+<div id="list">{''.join(cards)}</div>
+<script>(function(){{var q=document.getElementById('q'),fk=document.getElementById('fk'),fi=document.getElementById('fi'),
+c=document.getElementById('count'),items=[].slice.call(document.querySelectorAll('#list .item'));
+function run(){{var t=q.value.trim().toLowerCase(),k=fk.value,i=fi.value,n=0;
+items.forEach(function(el){{var ok=(!t||el.dataset.t.indexOf(t)>-1)&&(!k||el.dataset.k===k)&&(!i||el.dataset.i===i);
+el.style.display=ok?'':'none';if(ok)n++;}});c.textContent=n+' alert'+(n===1?'':'s');}}
+q.addEventListener('input',run);fk.addEventListener('change',run);fi.addEventListener('change',run);}})();</script>"""
+
+
 def build(notices: list[dict], sectors: list[str], out: str = "public") -> int:
     root = Path(out)
     (root / "n").mkdir(parents=True, exist_ok=True)
@@ -266,13 +295,16 @@ def build(notices: list[dict], sectors: list[str], out: str = "public") -> int:
 <span>हिंदी</span><span class="deva" style="font-size:18px">{e(s.get('headline_hi') or '')}</span>
 <span>Original title</span><span>{e(n['title'])}</span></div>
 {f'<div class="foot"><span class="m">Always verify with the official text.</span>{official}</div>' if official else ''}</div>"""
-        body = (f'<div class="page-h"><a href="{SITE_URL}/#latest" class="m">← All notices</a></div>'
+        body = (f'<div class="page-h"><a href="{SITE_URL}/alerts.html" class="m">← All alerts</a></div>'
                 + notice_card(n, link=False) + detail + signup_form(sectors))
         if s.get("deadline"):
             (root / "n" / f"{n['id']}.ics").write_text(ics_text(n), encoding="utf-8")
         title = f"{n['authority']} {n['kind']} {n.get('number') or ''}: {s.get('headline') or n['title']}"
         (root / "n" / f"{n['id']}.html").write_text(page(title[:110], body, s.get("summary", "")[:155]), encoding="utf-8")
-    latest = "".join(notice_card(n) for n in sorted(ranked, key=lambda n: n.get("notice_date") or "", reverse=True)[:40])
+    by_date = sorted(ranked, key=lambda n: n.get("notice_date") or "", reverse=True)
+    (root / "alerts.html").write_text(page(f"All DGFT alerts — {SITE_NAME}", alerts_page(by_date),
+                                           "Every DGFT notification, public notice and trade notice, explained in plain English."),
+                                      encoding="utf-8")
     tg = _tg()
     tg_btn = f' <a class="btn ghost" href="https://t.me/{e(tg)}">Join on Telegram</a>' if tg else ""
     home = f"""<section class="hero"><div>
@@ -280,10 +312,10 @@ def build(notices: list[dict], sectors: list[str], out: str = "public") -> int:
 <h1>India’s trade rules, written plainly. <span>Every morning.</span></h1>
 <p>Every morning we read new DGFT notifications, public notices and trade notices, explain them in plain English
 (with a Hindi line) and tell you what to do and by when — filtered to your HS codes.</p>
-<div><a class="btn" href="#latest">See latest notices</a>{tg_btn}</div>
+<div><a class="btn" href="{SITE_URL}/alerts.html">See all alerts</a>{tg_btn}</div>
 <p class="deva" style="margin-top:28px;font-size:20px">सागरलेख — सरल भाषा में व्यापार नियम</p></div>
 <div>{signup_form(sectors)}</div></section>
-{WAVE}{trust()}{pricing()}<h2 id="latest">Latest updates</h2>{latest}"""
+{WAVE}{trust()}{pricing()}"""
     (root / "index.html").write_text(page(f"{SITE_NAME} — DGFT alerts for exporters", home,
                                           "Plain-English alerts on DGFT notifications, public notices and trade notices for Indian exporters, matched to your HS codes."), encoding="utf-8")
     cfg = json.dumps({"url": os.getenv("SUPABASE_URL", ""), "key": os.getenv("SUPABASE_ANON_KEY", "")})
@@ -291,7 +323,7 @@ def build(notices: list[dict], sectors: list[str], out: str = "public") -> int:
 <script>const C={cfg};const t=new URLSearchParams(location.search).get('t');
 fetch(C.url+'/rest/v1/rpc/unsubscribe',{{method:'POST',headers:{{apikey:C.key,Authorization:'Bearer '+C.key,'Content-Type':'application/json'}},
 body:JSON.stringify({{token:t}})}}).then(r=>document.getElementById('u').textContent=r.ok?'You have been unsubscribed.':'Link invalid or expired.');</script>"""), encoding="utf-8")
-    urls = [f"{SITE_URL}/"] + [f"{SITE_URL}/{f}" for f in legal.pages()] + [f"{SITE_URL}/n/{n['id']}.html" for n in ranked]
+    urls = [f"{SITE_URL}/", f"{SITE_URL}/alerts.html"] + [f"{SITE_URL}/{f}" for f in legal.pages()] + [f"{SITE_URL}/n/{n['id']}.html" for n in ranked]
     (root / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
                                       + "".join(f"<url><loc>{u}</loc></url>" for u in urls) + "</urlset>", encoding="utf-8")
     for fname, (title, body) in legal.pages().items():
