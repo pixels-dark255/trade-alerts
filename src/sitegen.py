@@ -101,6 +101,15 @@ footer .w{display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between}foo
 .faq{padding:16px 20px;margin:10px 0}.faq summary{cursor:pointer;font-weight:600;font-size:16px}.faq p{margin:10px 0 0;color:#33475B}
 .cal{font-size:14px}
 .filters{display:grid;grid-template-columns:minmax(0,1fr) 180px 160px;gap:10px;padding:14px}.filters input,.filters select{margin:0}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.pill{font:inherit;font-size:13px;background:var(--shallow);color:var(--ink);border:1px solid #C9D9F5;border-radius:999px;padding:6px 11px;cursor:pointer}.pill:hover{background:#d6e4fb}
+.grp{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;background:#FBFCFE}
+.grp-h{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px}
+.grp .x{font:inherit;font-size:12px;background:none;border:0;color:var(--slate);cursor:pointer;text-decoration:underline}
+.codes{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.code{font-family:var(--mono);font-size:12px;background:var(--shallow);padding:3px 4px 3px 9px;border-radius:6px;display:inline-flex;align-items:center;gap:2px}
+.code button{font:inherit;border:0;background:none;color:var(--slate);cursor:pointer;padding:0 4px;font-size:14px;line-height:1}
+form .pill,form .grp .x,form .code button{width:auto;margin:0}form .pill{padding:6px 11px;font-size:13px}form .grp .x{padding:0;font-size:12px}form .code button{padding:0 4px;font-size:14px}.code{white-space:nowrap}
 @media(max-width:640px){.filters{grid-template-columns:1fr}}
 @media(max-width:640px){.nav nav{gap:14px;font-size:14px}.nav .btn{padding:9px 14px}.rows{grid-template-columns:1fr}.hero{padding-top:32px}}
 @media(max-width:560px){.nav nav a:not(.btn){display:none}.nav .w{flex-wrap:nowrap}}"""
@@ -162,26 +171,56 @@ def notice_card(n: dict, link: bool = True) -> str:
 {f'<div class="foot"><span></span>{more}</div>' if more else ''}</article>"""
 
 
+def _product_groups() -> list[dict]:
+    import yaml
+    f = Path(__file__).resolve().parents[1] / "config" / "product_groups.yaml"
+    return (yaml.safe_load(f.read_text(encoding="utf-8")) or {}).get("groups", []) if f.exists() else []
+
+
 def signup_form(sectors: list[str]) -> str:
     opts = "".join(f'<option>{e(s)}</option>' for s in sectors)
     cfg = json.dumps({"url": os.getenv("SUPABASE_URL", ""), "key": os.getenv("SUPABASE_ANON_KEY", "")})
+    groups = json.dumps([{"n": g["name"], "k": [k.lower() for k in g.get("keywords", [])], "c": [str(c) for c in g["codes"]]}
+                         for g in _product_groups()], ensure_ascii=False).replace("</", "<\\/")
     return f"""<div class="card" id="signup"><h2>Get free weekly alerts</h2>
 <div class="m">Plain-English summaries in your inbox. Unsubscribe anytime.</div>
-<form id="f"><label class="l" for="f-email">Work email</label><input id="f-email" name="email" type="email" required placeholder="you@yourfirm.in">
+<form id="f" autocomplete="off"><label class="l" for="f-email">Work email</label><input id="f-email" name="email" type="email" required placeholder="you@yourfirm.in">
 <label class="l" for="f-co">Company <span class="m">(optional)</span></label><input id="f-co" name="company" placeholder="Company name">
-<label class="l" for="f-hs">Your HS codes <span class="m">(optional)</span></label><input id="f-hs" name="hs" placeholder="e.g. 3923, 7113">
+<label class="l" for="f-prod">What do you trade? <span class="m">(we pick the HS codes for you)</span></label>
+<input id="f-prod" placeholder="Type a product, e.g. jewellery, rice, carpets, steel">
+<div id="sugg" class="sugg"></div><div id="picked"></div>
+<label class="l" for="f-hs">More HS codes <span class="m">(optional, comma separated)</span></label><input id="f-hs" name="hs" placeholder="e.g. 3923, 7113">
 <label class="l" for="f-sec">Main sector <span class="m">(optional)</span></label><select id="f-sec" name="sector"><option value="">Choose a sector</option>{opts}</select>
 <label class="m agree"><input type="checkbox" required> I agree to receive alert emails and can unsubscribe anytime.</label>
 <button class="btn">Subscribe free</button><div id="msg" class="m" aria-live="polite"></div></form></div>
-<script>const C={cfg};document.getElementById('f').onsubmit=async ev=>{{ev.preventDefault();
+<script>const C={cfg},G={groups};
+(function(){{const inp=document.getElementById('f-prod'),sg=document.getElementById('sugg'),pk=document.getElementById('picked');
+const chosen=new Map();
+function esc(t){{return String(t).replace(/[&<>"]/g,c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}})[c]);}}
+function render(){{pk.innerHTML='';chosen.forEach((codes,name)=>{{const box=document.createElement('div');box.className='grp';
+box.innerHTML='<div class="grp-h"><b>'+esc(name)+'</b><button type="button" class="x" title="Remove group">Remove</button></div><div class="codes"></div>';
+box.querySelector('.x').onclick=()=>{{chosen.delete(name);render();}};
+const cw=box.querySelector('.codes');codes.forEach(c=>{{const ch=document.createElement('span');ch.className='code';ch.innerHTML='# '+esc(c)+' <button type="button" title="Remove code">×</button>';
+ch.querySelector('button').onclick=()=>{{codes.delete(c);if(!codes.size)chosen.delete(name);render();}};cw.appendChild(ch);}});pk.appendChild(box);}});
+if(chosen.size){{const n=document.createElement('div');n.className='m';n.textContent='These codes are suggestions. Remove any you do not trade, or add more below.';pk.appendChild(n);}}}}
+function add(g){{chosen.set(g.n,new Set(g.c));inp.value='';sg.innerHTML='';render();}}
+function find(q){{q=q.trim().toLowerCase();if(q.length<2)return[];return G.filter(g=>g.n.toLowerCase().includes(q)||g.k.some(k=>k.includes(q)||(k.length>=4&&q.includes(k)))).slice(0,6);}}
+inp.addEventListener('input',()=>{{const r=find(inp.value);sg.innerHTML='';
+if(!r.length&&inp.value.trim().length>=2){{sg.innerHTML='<span class="m">No group found. Type your HS codes below instead.</span>';return;}}
+r.forEach(g=>{{const b=document.createElement('button');b.type='button';b.className='pill';b.textContent='+ '+g.n+' ('+g.c.length+' codes)';b.onclick=()=>add(g);sg.appendChild(b);}});}});
+inp.addEventListener('keydown',ev=>{{if(ev.key==='Enter'){{ev.preventDefault();const r=find(inp.value);if(r.length)add(r[0]);}}}});
+window.__pickedCodes=()=>{{const a=[];chosen.forEach(s=>s.forEach(c=>a.push(c)));return a;}};
+window.__resetPicked=()=>{{chosen.clear();render();}};}})();
+document.getElementById('f').onsubmit=async ev=>{{ev.preventDefault();
 const d=new FormData(ev.target),m=document.getElementById('msg');m.textContent='Saving…';
+const manual=(d.get('hs')||'').split(',').map(x=>x.replace(/\\D/g,'')).filter(x=>x.length>=2&&x.length<=8);
 const body={{email:d.get('email').trim().toLowerCase(),company:d.get('company')||null,
-hs_prefixes:(d.get('hs')||'').split(',').map(x=>x.replace(/\\D/g,'')).filter(x=>x.length>=2&&x.length<=8),
+hs_prefixes:[...new Set([...window.__pickedCodes(),...manual])],
 sectors:d.get('sector')?[d.get('sector')]:[]}};
 try{{const r=await fetch(C.url+'/rest/v1/subscribers',{{method:'POST',headers:{{apikey:C.key,Authorization:'Bearer '+C.key,
 'Content-Type':'application/json',Prefer:'return=minimal'}},body:JSON.stringify(body)}});
 m.textContent=r.ok?'Done! Your first weekly digest arrives within 7 days.':(r.status===409?'You are already subscribed.':'Something went wrong — try again.');
-if(r.ok)ev.target.reset();}}catch(_){{m.textContent='Network error — try again.'}}}};</script>"""
+if(r.ok){{ev.target.reset();window.__resetPicked();}}}}catch(_){{m.textContent='Network error — try again.'}}}};</script>"""
 
 
 def _inr(n: int) -> str:

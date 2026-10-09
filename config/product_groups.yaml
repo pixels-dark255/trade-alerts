@@ -1,0 +1,91 @@
+# Product groups for the signup form: type a product, get its HS codes pre-selected.
+# Codes are HS 2022 headings (4-digit) or chapters (2-digit). Matching is by prefix, so a 4-digit heading
+# also catches every 6/8-digit code under it. Add or edit groups here — no code change needed.
+groups:
+  - name: Gems & jewellery
+    keywords: [jewellery, jewelry, gems, gemstones, diamonds, gold, silver, pearls, kundan, polki, coloured stones, gehne]
+    codes: ["7101", "7102", "7103", "7104", "7106", "7108", "7113", "7114", "7116"]
+  - name: Imitation / fashion jewellery
+    keywords: [imitation jewellery, fashion jewellery, artificial jewellery, costume jewellery, bangles]
+    codes: ["7117"]
+  - name: Gold & silver bullion
+    keywords: [bullion, gold bars, silver bars, dore, precious metal]
+    codes: ["7106", "7108", "7110", "7112"]
+  - name: Wooden handicrafts & furniture
+    keywords: [wood handicrafts, wooden, furniture, sheesham, mango wood, carving, frames]
+    codes: ["4414", "4419", "4420", "9401", "9403"]
+  - name: Metal handicrafts & artware
+    keywords: [metal handicrafts, brass, copper, artware, iron handicrafts, statues, idols]
+    codes: ["7323", "7326", "7418", "7419", "8306"]
+  - name: Marble, granite & stone
+    keywords: [marble, granite, stone, sandstone, kota stone, slabs, stone articles]
+    codes: ["2515", "2516", "6802"]
+  - name: Ceramics & blue pottery
+    keywords: [ceramics, pottery, blue pottery, porcelain, tableware]
+    codes: ["6911", "6912", "6913"]
+  - name: Home textiles
+    keywords: [home textiles, bedsheets, bed linen, quilts, razai, curtains, cushion covers, table linen, made-ups]
+    codes: ["6301", "6302", "6303", "6304", "6307"]
+  - name: Carpets & rugs
+    keywords: [carpets, rugs, durries, dhurrie, floor coverings]
+    codes: ["5701", "5702", "5703", "5705"]
+  - name: Garments & apparel
+    keywords: [garments, apparel, clothing, kurtis, readymade, knitwear, t-shirts, block print clothing]
+    codes: ["61", "62"]
+  - name: Cotton yarn & fabric
+    keywords: [cotton, yarn, fabric, textiles, grey fabric, woven fabric]
+    codes: ["5205", "5208", "5209", "5210", "5211", "5212"]
+  - name: Synthetic yarn & fabric
+    keywords: [polyester, synthetic, viscose, man-made fibre, filament yarn]
+    codes: ["5402", "5407", "5509", "5512", "5513"]
+  - name: Leather goods & footwear
+    keywords: [leather, bags, handbags, wallets, footwear, shoes, jootis, mojari]
+    codes: ["4202", "4203", "64"]
+  - name: Plastic packaging & articles
+    keywords: [plastic, packaging, polymer, pet, bottles, films, sheets]
+    codes: ["3920", "3921", "3923", "3926"]
+  - name: Paper & paperboard packaging
+    keywords: [paper, paperboard, cartons, boxes, kraft, packaging board]
+    codes: ["4804", "4805", "4810", "4819"]
+  - name: Rice
+    keywords: [rice, basmati, non-basmati, chawal]
+    codes: ["1006"]
+  - name: Wheat, flour & sugar
+    keywords: [wheat, atta, flour, maida, sugar, cheeni]
+    codes: ["1001", "1101", "1701"]
+  - name: Spices
+    keywords: [spices, chilli, pepper, cumin, jeera, turmeric, haldi, coriander, cardamom, masala]
+    codes: ["0904", "0908", "0909", "0910"]
+  - name: Pulses, onions & fresh produce
+    keywords: [pulses, dal, lentils, chana, onion, vegetables, fruits]
+    codes: ["0703", "0713", "07", "08"]
+  - name: Tea, coffee & nuts
+    keywords: [tea, coffee, cashew, almonds, nuts, dry fruits]
+    codes: ["0801", "0802", "0901", "0902"]
+  - name: Pharmaceuticals
+    keywords: [pharma, medicines, drugs, formulations, tablets, vaccines]
+    codes: ["3002", "3003", "3004"]
+  - name: APIs & organic chemicals
+    keywords: [api, bulk drugs, organic chemicals, intermediates, chemicals]
+    codes: ["29", "2941"]
+  - name: Inorganic chemicals, dyes & fertilisers
+    keywords: [inorganic chemicals, soda ash, dyes, pigments, fertilisers, fertilizers]
+    codes: ["28", "3204", "31"]
+  - name: Auto parts
+    keywords: [auto parts, automobile, vehicle parts, engine parts, two-wheeler parts]
+    codes: ["8409", "8708", "8714"]
+  - name: Iron & steel products
+    keywords: [steel, iron, pipes, tubes, flat rolled, fasteners, bolts]
+    codes: ["7208", "7210", "7304", "7305", "7306", "7318", "7326"]
+  - name: Aluminium & copper
+    keywords: [aluminium, aluminum, copper, non-ferrous, wire]
+    codes: ["7403", "7408", "7601", "7604", "7606"]
+  - name: Electronics & electricals
+    keywords: [electronics, mobile phones, computers, chips, transformers, cables, solar cells, solar panels]
+    codes: ["8471", "8504", "8517", "8541", "8542", "8544"]
+  - name: Coal & coke
+    keywords: [coal, coke, met coke]
+    codes: ["2701", "2704"]
+  - name: Toys, lamps & home decor
+    keywords: [toys, lamps, lighting, home decor, candles, gifts]
+    codes: ["3406", "9405", "9503"]

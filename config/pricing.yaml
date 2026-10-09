@@ -19,7 +19,7 @@ plans:
     monthly: {price: 299, url: "https://rzp.io/rzp/sagarlekh-pro-monthly"}
     yearly:  {price: 2999, url: "https://rzp.io/rzp/sagarlekh-pro-yearly"}
     features:
-      - {text: "Only the notices that match your HS codes and sectors (up to 10 HS codes)"}
+      - {text: "Only the notices that match your products: pick product groups (we fill in the HS codes) or add your own codes"}
       - {text: "Same-day email alerts instead of a weekly round-up"}
       - {text: "On every alert: what changed, who is affected, the action to take, the deadline and the official PDF"}
       - {text: "Add deadlines to Google, Outlook or Apple Calendar in one click"}
@@ -53,7 +53,7 @@ compare:
   header: ["", "Free", "Pro", "Firm"]
   rows:
     - ["How you get alerts", "Weekly email + Telegram", "Same-day email", "Same-day email"]
-    - ["Filtered to your HS codes", "—", "Up to 10 codes", "Up to 25 clients"]
+    - ["Filtered to your products / HS codes", "—", "Yes, pick product groups", "Up to 25 clients"]
     - ["Action, deadline and official PDF on each alert", "Yes", "Yes", "Yes"]
     - ["Add deadlines to your calendar", "On the website", "Website + email", "Website + email"]
     - ["Questions answered", "—", "2 a month, within 48 h", "10 a month, within 24 h"]
