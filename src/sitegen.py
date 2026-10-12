@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import html
 import json
+from urllib.parse import quote
 import os
 import shutil
 from pathlib import Path
@@ -133,7 +134,7 @@ def page(title: str, body: str, desc: str = "") -> str:
 <meta name="description" content="{e(desc)}"><meta name="theme-color" content="#0f2a4a">
 <link rel="icon" href="{SITE_URL}/assets/favicon.svg" type="image/svg+xml"><link rel="icon" href="{SITE_URL}/assets/favicon.ico" sizes="any"><link rel="apple-touch-icon" href="{SITE_URL}/assets/apple-touch-icon.png">{FONTS}<style>{CSS}</style></head><body>
 <header class="nav"><div class="w">{brand_link()}
-<nav><a href="{SITE_URL}/alerts.html">All alerts</a><a href="{SITE_URL}/#pricing">Plans</a><a href="{SITE_URL}/#faq">FAQ</a>{tg_link}
+<nav><a href="{SITE_URL}/alerts.html">All alerts</a><a href="{SITE_URL}/brief.html">Weekly brief</a><a href="{SITE_URL}/#pricing">Plans</a><a href="{SITE_URL}/#faq">FAQ</a>{tg_link}
 <a class="btn" href="{SITE_URL}/#signup">Subscribe free</a></nav></div></header>
 <main class="w">{body}</main>
 <footer><div class="w"><div>{brand_link()}
@@ -315,6 +316,45 @@ el.style.display=ok?'':'none';if(ok)n++;}});c.textContent=n+' alert'+(n===1?'':'
 q.addEventListener('input',run);fk.addEventListener('change',run);fi.addEventListener('change',run);}})();</script>"""
 
 
+def brief_text(notices: list[dict], since: str, title: str = "DGFT changes this week") -> str:
+    """WhatsApp / newsletter-ready plain text. *bold* works in WhatsApp; harmless elsewhere."""
+    lines = [f"*{title}* (since {since})", ""]
+    for i, n in enumerate(notices, 1):
+        s = n.get("summary") or {}
+        lines.append(f"{i}. *{s.get('headline') or n['title']}*")
+        if s.get("action_required"):
+            lines.append(f"   What to do: {s['action_required']}")
+        if s.get("deadline"):
+            lines.append(f"   Deadline: {s['deadline']}")
+        lines.append(f"   {SITE_URL}/n/{n['id']}.html")
+        lines.append("")
+    lines.append(f"Plain-English DGFT alerts matched to your products, free: {SITE_URL}")
+    return "\n".join(lines)
+
+
+def brief_page(by_date: list[dict]) -> str:
+    """Ready-to-forward weekly brief for associations, WhatsApp groups, CHAs and consultants."""
+    from datetime import date, timedelta
+    since = (date.today() - timedelta(days=7)).isoformat()
+    week = [n for n in by_date if (n.get("notice_date") or "") >= since]
+    head = "DGFT changes this week"
+    if not week:
+        week, head = by_date[:5], "Latest DGFT changes"
+        since = week[-1].get("notice_date") or since if week else since
+    week = rank(week)[:8]
+    txt = brief_text(week, since, head)
+    cards = "".join(notice_card(n) for n in week)
+    return f"""<div class="page-h"><div class="eyebrow"><i></i>Weekly brief</div><h1>{head}</h1>
+<p class="m" style="font-size:15px">Free to forward to your members, clients or WhatsApp groups. Updated every day; please keep the link to {e(SITE_NAME)}.</p></div>
+<div class="card"><b>Copy and paste</b><textarea id="bt" readonly rows="14" style="width:100%;font:13px/1.5 var(--mono);margin-top:8px">{e(txt)}</textarea>
+<div><button class="btn" id="cp" type="button">Copy text</button>
+<a class="btn ghost" href="https://wa.me/?text={e(quote(txt))}" rel="noopener">Share on WhatsApp</a></div><div class="m" id="cpm"></div></div>
+{cards}
+<script>document.getElementById('cp').onclick=function(){{var t=document.getElementById('bt');t.select();
+(navigator.clipboard?navigator.clipboard.writeText(t.value):Promise.reject()).then(function(){{document.getElementById('cpm').textContent='Copied.';}},
+function(){{document.execCommand('copy');document.getElementById('cpm').textContent='Copied.';}});}};</script>"""
+
+
 def build(notices: list[dict], sectors: list[str], out: str = "public") -> int:
     root = Path(out)
     (root / "n").mkdir(parents=True, exist_ok=True)
@@ -344,6 +384,8 @@ def build(notices: list[dict], sectors: list[str], out: str = "public") -> int:
     (root / "alerts.html").write_text(page(f"All DGFT alerts — {SITE_NAME}", alerts_page(by_date),
                                            "Every DGFT notification, public notice and trade notice, explained in plain English."),
                                       encoding="utf-8")
+    (root / "brief.html").write_text(page(f"Weekly DGFT brief — {SITE_NAME}", brief_page(by_date),
+                                          "This week's DGFT changes in plain English, ready to forward."), encoding="utf-8")
     tg = _tg()
     tg_btn = f' <a class="btn ghost" href="https://t.me/{e(tg)}">Join on Telegram</a>' if tg else ""
     home = f"""<section class="hero"><div>
@@ -362,7 +404,7 @@ def build(notices: list[dict], sectors: list[str], out: str = "public") -> int:
 <script>const C={cfg};const t=new URLSearchParams(location.search).get('t');
 fetch(C.url+'/rest/v1/rpc/unsubscribe',{{method:'POST',headers:{{apikey:C.key,Authorization:'Bearer '+C.key,'Content-Type':'application/json'}},
 body:JSON.stringify({{token:t}})}}).then(r=>document.getElementById('u').textContent=r.ok?'You have been unsubscribed.':'Link invalid or expired.');</script>"""), encoding="utf-8")
-    urls = [f"{SITE_URL}/", f"{SITE_URL}/alerts.html"] + [f"{SITE_URL}/{f}" for f in legal.pages()] + [f"{SITE_URL}/n/{n['id']}.html" for n in ranked]
+    urls = [f"{SITE_URL}/", f"{SITE_URL}/alerts.html", f"{SITE_URL}/brief.html"] + [f"{SITE_URL}/{f}" for f in legal.pages()] + [f"{SITE_URL}/n/{n['id']}.html" for n in ranked]
     (root / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
                                       + "".join(f"<url><loc>{u}</loc></url>" for u in urls) + "</urlset>", encoding="utf-8")
     for fname, (title, body) in legal.pages().items():
