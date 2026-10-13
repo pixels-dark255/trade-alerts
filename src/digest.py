@@ -124,3 +124,35 @@ def post_telegram(text: str) -> None:
                    timeout=30, json={"chat_id": os.environ["TELEGRAM_CHANNEL"], "text": text,
                                      "parse_mode": "HTML", "disable_web_page_preview": True})
     r.raise_for_status()
+
+
+def plan_links(plan: str) -> dict:
+    """Monthly / yearly payment links for a plan, from config/pricing.yaml."""
+    import yaml
+    from pathlib import Path
+    f = Path(__file__).resolve().parents[1] / "config" / "pricing.yaml"
+    cfg = yaml.safe_load(f.read_text(encoding="utf-8")) if f.exists() else {}
+    for p in cfg.get("plans", []):
+        if p.get("name", "").lower() == plan and p.get("monthly"):
+            return {"monthly": p["monthly"], "yearly": p["yearly"]}
+    return {}
+
+
+def render_renewal(sub: dict, days_left: int) -> tuple[str, str]:
+    e = html.escape
+    plan = sub["plan"]
+    links = plan_links(plan)
+    when = "today" if days_left <= 0 else f"in {days_left} days"
+    btns = "".join(
+        f'<a href="{e(v["url"])}" style="display:inline-block;background:#0f2a4a;color:#fff;text-decoration:none;'
+        f'padding:10px 16px;border-radius:8px;margin:4px 8px 4px 0">{k.title()} ₹{v["price"]:,}</a>'
+        for k, v in links.items())
+    body = f"""<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto">
+<h2 style="margin-bottom:0">{e(SITE_NAME)}</h2>
+<p>Namaste{(' ' + e(sub['name'])) if sub.get('name') else ''},</p>
+<p>Your {e(plan.title())} plan ends {when} ({e(str(sub.get('paid_until')))}). To keep getting same-day alerts for your
+HS codes, renew with the same email address:</p>
+<p>{btns}</p>
+<p style="font-size:13px;color:#555">If you don't renew, you'll move to the free weekly digest. Nothing else changes.
+Questions? Just reply to this email.</p></div>"""
+    return f"Your {SITE_NAME} {plan.title()} plan ends {when}", body

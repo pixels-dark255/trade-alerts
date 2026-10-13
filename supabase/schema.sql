@@ -59,3 +59,7 @@ returns boolean language sql security definer set search_path = public as $$
   returning true;
 $$;
 grant execute on function unsubscribe(uuid) to anon;
+
+-- v17: paid plans are not auto-renewing. Set this date when you switch a subscriber to pro/firm.
+-- The daily run emails a renewal link 3 days before and on the day, and moves them back to free 3 days after.
+alter table subscribers add column if not exists paid_until date;

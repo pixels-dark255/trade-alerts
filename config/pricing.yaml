@@ -18,6 +18,12 @@ plans:
     for: For exporters and importers
     monthly: {price: 299, url: "https://rzp.io/rzp/sagarlekh-pro-monthly"}
     yearly:  {price: 2999, url: "https://rzp.io/rzp/sagarlekh-pro-yearly"}
+    # Launch offer. Delete these 4 lines to end it.
+    offer:
+      price: 99
+      url: "https://rzp.io/rzp/sagarlekh-pro-first-month"
+      label: "Launch offer: your first month for ₹99"
+      note: "For new Pro subscribers until 31 Dec 2026. After that, ₹299/month or ₹2,999/year."
     features:
       - {text: "Only the notices that match your products: pick product groups (we fill in the HS codes) or add your own codes"}
       - {text: "Same-day email alerts instead of a weekly round-up"}
@@ -43,6 +49,7 @@ plans:
       - {text: "Per-client deadline tracker with CSV export", soon: true}
 
 perks:
+  - "Launch offer: try Pro for ₹99 for your first month (new subscribers, until 31 Dec 2026)."
   - "Founding members: the first 50 paid subscribers keep today's price for as long as they stay subscribed."
   - "Try Pro free for 14 days: subscribe free, then email hello@dharalabs.in with the word TRIAL."
   - "Yearly plans cost about the same as 10 months."
@@ -89,6 +96,7 @@ faq:
     a: >-
       Pay using the button for your plan and enter the same email you subscribed with. Your plan is
       switched on within 24 hours. Plans do not renew automatically; you pay for each month or year.
+      We email you a renewal link 3 days before your plan ends.
   - q: Can I cancel or get a refund?
     a: >-
       You can stop at any time; your plan stays active until the end of the period you paid for.

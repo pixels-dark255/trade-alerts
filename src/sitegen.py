@@ -112,6 +112,8 @@ footer .w{display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between}foo
 .code button{font:inherit;border:0;background:none;color:var(--slate);cursor:pointer;padding:0 4px;font-size:14px;line-height:1}
 form .pill,form .grp .x,form .code button{width:auto;margin:0}form .pill{padding:6px 11px;font-size:13px}form .grp .x{padding:0;font-size:12px}form .code button{padding:0 4px;font-size:14px}.code{white-space:nowrap}
 @media(max-width:640px){.filters{grid-template-columns:1fr}}
+.offer{background:#FFF6E0;border:1px solid #F2D58A;border-radius:12px;padding:12px 14px;margin:4px 0 6px;font-size:14px}
+.offer b{display:block;font-size:15px;color:var(--ink)}.offer span{display:block;color:var(--slate);margin:2px 0 4px}.offer .btn{margin:6px 0 0}
 @media(max-width:640px){.nav nav{gap:14px;font-size:14px}.nav .btn{padding:9px 14px}.rows{grid-template-columns:1fr}.hero{padding-top:32px}}
 @media(max-width:560px){.nav nav a:not(.btn){display:none}.nav .w{flex-wrap:nowrap}}"""
 
@@ -258,7 +260,11 @@ def pricing() -> str:
             m, y = p["monthly"], p["yearly"]
             save = m["price"] * 12 - y["price"]
             price = f'₹{_inr(m["price"])}<span class="m">/month</span>'
-            ctas = (f'<div><a class="btn" href="{e(m["url"])}">Monthly ₹{_inr(m["price"])}</a>'
+            o = p.get("offer")
+            offer = (f'<div class="offer"><b>{e(o["label"])}</b><span>{e(o.get("note", ""))}</span>'
+                     f'<a class="btn" href="{e(o["url"])}">Start for ₹{_inr(o["price"])}</a></div>') if o else ""
+            first = "btn ghost" if o else "btn"
+            ctas = (offer + f'<div><a class="{first}" href="{e(m["url"])}">Monthly ₹{_inr(m["price"])}</a>'
                     f'<a class="btn ghost" href="{e(y["url"])}">Yearly ₹{_inr(y["price"])}</a></div>'
                     f'<div class="m">Yearly saves ₹{_inr(save)}. Pay with the email you subscribed with.</div>')
         else:

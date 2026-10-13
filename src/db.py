@@ -50,3 +50,7 @@ class DB:
     def log_delivery(self, subscriber_id: str, notice_ids: list[str]) -> None:
         self.c.post("/deliveries", json={"subscriber_id": subscriber_id,
                                          "notice_ids": notice_ids}).raise_for_status()
+
+    def downgrade(self, subscriber_id: str) -> None:
+        self.c.patch("/subscribers", params={"id": f"eq.{subscriber_id}"},
+                     json={"plan": "free", "paid_until": None}).raise_for_status()

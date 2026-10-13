@@ -95,6 +95,12 @@ def publish(sectors, db, now, report, errors) -> int:
         db.mark_posted(posted)
         report.append(f"telegram posts: {len(posted)}")
 
+    # 4a. Paid plans: renewal reminders (3 days before + on the day), back to free 3 days after
+    try:
+        renew_paid(db, now, report, errors)
+    except Exception as ex:
+        errors.append(f"renewals: {ex!r}")
+
     # 4. Publish — email
     day = [n for n in db.notices_since((now - timedelta(hours=26)).isoformat()) if n.get("summary")]
     week = [n for n in db.notices_since((now - timedelta(days=7)).isoformat())
@@ -133,6 +139,29 @@ def publish(sectors, db, now, report, errors) -> int:
     except Exception as ex:
         errors.append(f"site build: {ex!r}")
     return sent
+
+
+def renew_paid(db, now, report, errors) -> None:
+    from datetime import date
+    today = now.date()
+    for sub in db.active_subscribers():
+        if sub["plan"] not in ("pro", "firm"):
+            continue
+        if not sub.get("paid_until"):
+            errors.append(f"{sub['email']} is on {sub['plan']} with no paid_until date — set it in Supabase")
+            continue
+        left = (date.fromisoformat(str(sub["paid_until"])[:10]) - today).days
+        if left < -3:
+            if not DRY:
+                db.downgrade(sub["id"])
+            sub["plan"] = "free"
+            report.append(f"moved to free (not renewed): {sub['email']}")
+        elif left in (3, 0):
+            report.append(f"renewal due in {left} day(s): {sub['email']} ({sub['plan']})")
+            if not DRY and os.getenv("RESEND_API_KEY"):
+                subject, body = digest.render_renewal(sub, left)
+                digest.send_email(sub["email"], subject, body,
+                                  f"{digest.SITE_URL}/unsubscribe.html?t={sub['unsubscribe_token']}")
 
 
 def finish(report, errors, now, new, sent) -> int:
