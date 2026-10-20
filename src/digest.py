@@ -82,28 +82,45 @@ def render_email(sub: dict, notices: list[dict], weekly: bool) -> tuple[str, str
 <div style="font-size:13px;color:#333;margin-top:6px"><b>Action:</b> {e(s.get('action_required') or '—')}{deadline}</div>
 <div style="font-size:13px;color:#555;margin-top:4px">{e(s.get('headline_hi') or '')}</div>
 <a href="{SITE_URL}/n/{n['id']}.html" style="font-size:13px">Details</a>
-{' · <a href="' + e(n['url']) + '" style="font-size:13px">Official PDF</a>' if n.get('url') else ''}
+{' · <a href="' + e(n['url']) + '" style="font-size:13px">Official PDF</a>' if str(n.get('url') or '').startswith(('https://', 'http://')) else ''}
 </td></tr>""")
     upsell = "" if not weekly else f"""
 <p style="background:#f4f8ff;padding:12px;font-size:14px">This is the free weekly digest.
-<b>Pro</b> sends alerts matched to <i>your</i> HS codes every morning.
+Paid plans send alerts matched to <i>your</i> HS codes the same day a notice touches them.
 <a href="{SITE_URL}/#pricing">Upgrade</a></p>"""
-    unsub = f"{SITE_URL}/unsubscribe.html?t={sub['unsubscribe_token']}"
     body = f"""<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto">
 <h2 style="margin-bottom:0">{e(SITE_NAME)}</h2>
 <p style="color:#777;margin-top:4px">{'Weekly' if weekly else 'Daily'} EXIM regulatory alerts · {len(notices)} update(s)</p>
 {upsell}<table width="100%" cellspacing="0">{''.join(items)}</table>
-<p style="font-size:11px;color:#999;margin-top:20px">AI-generated summaries of official notices for information only —
-always check the official text before acting. <a href="{unsub}">Unsubscribe</a></p></div>"""
+<p style="font-size:12px;color:#555;margin-top:20px">AI-generated summaries of official notices for information only.
+Always check the official text before acting.</p>{email_footer(sub)}</div>"""
     top = (notices[0].get("summary") or {}).get("headline") or notices[0]["title"]
     subject = f"{'Weekly' if weekly else 'Today'}: {top[:70]}" + (f" (+{len(notices)-1} more)" if len(notices) > 1 else "")
     return subject, body
+
+
+def contact_email() -> str:
+    return (os.getenv("CONTACT_EMAIL") or "dharalabs.co@gmail.com").strip()
+
+
+def email_footer(sub: dict) -> str:
+    """Every email to a subscriber: why they get it, who we are, one-click unsubscribe and data deletion."""
+    e = html.escape
+    t = sub.get("unsubscribe_token", "")
+    company = e((os.getenv("LEGAL_NAME") or "DharaLabs").strip())
+    place = e((os.getenv("BUSINESS_ADDRESS") or os.getenv("JURISDICTION") or "Jaipur, Rajasthan, India").strip())
+    return (f'<p style="font-size:12px;color:#555;border-top:1px solid #ddd;padding-top:10px">'
+            f'You get this email because you subscribed to {e(SITE_NAME)} at {e(SITE_URL)}. '
+            f'<a href="{SITE_URL}/unsubscribe.html?t={t}">Unsubscribe</a> · '
+            f'<a href="{SITE_URL}/unsubscribe.html?t={t}&amp;delete=1">Delete my data</a> · '
+            f'<a href="{SITE_URL}/privacy.html">Privacy</a><br>{company}, {place} · {e(contact_email())}</p>')
 
 
 def send_email(to: str, subject: str, body: str, unsub_url: str) -> None:
     r = httpx.post("https://api.resend.com/emails", timeout=30,
                    headers={"Authorization": f"Bearer {os.environ['RESEND_API_KEY']}"},
                    json={"from": os.environ["MAIL_FROM"], "to": [to], "subject": subject, "html": body,
+                         "reply_to": contact_email(),
                          "headers": {"List-Unsubscribe": f"<{unsub_url}>"}})
     r.raise_for_status()
 
@@ -154,5 +171,5 @@ def render_renewal(sub: dict, days_left: int) -> tuple[str, str]:
 HS codes, renew with the same email address:</p>
 <p>{btns}</p>
 <p style="font-size:13px;color:#555">If you don't renew, you'll move to the free weekly digest. Nothing else changes.
-Questions? Just reply to this email.</p></div>"""
+Questions? Just reply to this email.</p>{email_footer(sub)}</div>"""
     return f"Your {SITE_NAME} {plan.title()} plan ends {when}", body

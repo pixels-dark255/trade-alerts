@@ -144,6 +144,18 @@ def publish(sectors, db, now, report, errors) -> int:
             for x in r.json():
                 report.append(f"PILOT SIGN-UP ({x['offer']}): {x.get('name')}, {x.get('company')}, {x.get('email')}, "
                               f"{x.get('phone') or ''} - {x.get('details') or ''}")
+        r = db.c.get("/data_requests", params={"select": "kind,email,details,created_at", "done_at": "is.null"})
+        if r.status_code == 200:
+            for x in r.json():
+                errors.append(f"DATA REQUEST to handle within 30 days ({x['kind']}): {x['email']} - {x.get('details') or ''} "
+                              f"(received {str(x['created_at'])[:10]}; mark done_at in Supabase when finished)")
+        # retention (privacy policy): unsubscribed > 90 days, pilot interest and data requests > 12 months
+        cut90 = (now - timedelta(days=90)).isoformat()
+        cut365 = (now - timedelta(days=365)).isoformat()
+        if not DRY:
+            db.c.delete("/subscribers", params={"status": "eq.unsubscribed", "unsubscribed_at": f"lt.{cut90}"})
+            db.c.delete("/pilot_interest", params={"created_at": f"lt.{cut365}"})
+            db.c.delete("/data_requests", params={"created_at": f"lt.{cut365}"})
     except Exception as ex:
         errors.append(f"site build: {ex!r}")
     return sent
@@ -172,10 +184,20 @@ def renew_paid(db, now, report, errors) -> None:
                                   f"{digest.SITE_URL}/unsubscribe.html?t={sub['unsubscribe_token']}")
 
 
+def redact(text: str) -> str:
+    import re
+    text = re.sub(r"[\w.+-]+@[\w-]+(\.[\w-]+)+", "[email]", text)
+    text = re.sub(r"(?<!\d)(\+?91[ -]?)?[6-9]\d{9}(?!\d)", "[phone]", text)
+    text = re.sub(r"(sk-ant-|re_|eyJ)[A-Za-z0-9_.-]{8,}", "[secret]", text)
+    return text
+
+
 def finish(report, errors, now, new, sent) -> int:
     # 6. Owner ops report (your 2-minute daily check)
     text = "\n".join(report + (["", "ERRORS:"] + errors if errors else ["", "No errors."]))
-    print(text)
+    # GitHub Actions logs of a public repo are public: print no personal lines and no emails/phones/keys
+    private = ("PILOT SIGN-UP", "DATA REQUEST", "renewal due", "moved to free", "email ", "no paid_until")
+    print(redact("\n".join(l for l in text.split("\n") if not any(k in l for k in private))))
     owner = os.getenv("OWNER_EMAIL")
     if owner and not DRY and os.getenv("RESEND_API_KEY") and "publish" in STAGES:
         try:

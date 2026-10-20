@@ -40,11 +40,9 @@ def icon(name: str, size: int = 22, color: str = "#1f6feb") -> str:
             f'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{ICON[name]}</svg>')
 
 
-FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500'
-         '&family=IBM+Plex+Sans:wght@400;500;600&family=Tiro+Devanagari+Hindi&display=swap">')
+FONTS = f'<link rel="stylesheet" href="{SITE_URL}/assets/fonts/fonts.css">'
 
-CSS = """:root{--ink:#0f2a4a;--teal:#1f6feb;--gold:#1f6feb;--shallow:#E3EDFD;--paper:#F6F8FB;--line:#E3E8EF;--slate:#4F5F73;
+CSS = """:root{--ink:#0f2a4a;--teal:#1a5fd0;--gold:#1a5fd0;--shallow:#E3EDFD;--paper:#F6F8FB;--line:#E3E8EF;--slate:#4F5F73;
 --sans:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;--deva:'Tiro Devanagari Hindi','Noto Sans Devanagari',serif}
 *{box-sizing:border-box}html{scroll-padding-top:84px}body{margin:0;font-family:var(--sans);color:var(--ink);background:var(--paper);line-height:1.55;-webkit-font-smoothing:antialiased}
 a{color:var(--teal)}a:hover{color:var(--ink)}
@@ -80,7 +78,7 @@ h2{font-size:30px;font-weight:600;letter-spacing:-.02em;margin:48px 0 8px}
 .hs{font-family:var(--mono);font-size:12px;background:var(--shallow);padding:4px 9px;border-radius:6px}
 #signup{box-shadow:0 18px 40px -26px rgba(15,42,74,.4)}#signup h2{margin:0 0 4px;font-size:24px}
 label.l{display:block;font-size:14px;font-weight:600;margin-top:10px}
-input,select{font:inherit;font-size:15px;padding:12px 14px;border:1.5px solid #C3CEDB;border-radius:10px;width:100%;margin:5px 0;background:#fff;color:var(--ink)}
+input,select{font:inherit;font-size:15px;padding:12px 14px;border:1.5px solid #8796A8;border-radius:10px;width:100%;margin:5px 0;background:#fff;color:var(--ink)}
 input:focus,select:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal)}
 input[type=checkbox]{width:auto;margin:0 8px 0 0;accent-color:var(--teal)}.agree{display:flex;align-items:flex-start;margin:10px 0}
 form button{width:100%;margin-top:6px;padding:14px;font-size:16px}#msg{margin-top:8px;min-height:1.2em}
@@ -93,7 +91,7 @@ footer{background:var(--ink);color:#C9D6E6;margin-top:64px;padding:40px 0;font-s
 footer .w{display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between}footer p{max-width:520px;margin:12px 0 0}
 .lead{font-size:17px;color:#33475B;max-width:720px}
 .feats{list-style:none;padding:0;margin:8px 0 10px;font-size:14.5px;flex:1}.feats li{display:flex;gap:8px;margin:7px 0}
-.feats .tick{color:var(--teal);font-weight:600;flex-shrink:0}.feats li.later{color:var(--slate)}.feats li.later .tick{color:#9AA7B5}
+.feats .tick{color:var(--teal);font-weight:600;flex-shrink:0}.feats li.later{color:var(--slate)}.feats li.later .tick{color:#7A8899}
 .soon{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;background:var(--shallow);color:var(--slate);padding:2px 6px;border-radius:5px;margin-left:6px;white-space:nowrap}
 .perks ul{margin:8px 0 0;padding-left:20px;font-size:15px}.perks li{margin:5px 0}
 .tbl{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:16px}
@@ -115,7 +113,13 @@ form .pill,form .grp .x,form .code button{width:auto;margin:0}form .pill{padding
 .offer{background:#FFF6E0;border:1px solid #F2D58A;border-radius:12px;padding:12px 14px;margin:4px 0 6px;font-size:14px}
 .offer b{display:block;font-size:15px;color:var(--ink)}.offer span{display:block;color:var(--slate);margin:2px 0 4px}.offer .btn{margin:6px 0 0}
 @media(max-width:640px){.nav nav{gap:14px;font-size:14px}.nav .btn{padding:9px 14px}.rows{grid-template-columns:1fr}.hero{padding-top:32px}}
-@media(max-width:560px){.nav nav a:not(.btn){display:none}.nav .w{flex-wrap:nowrap}}"""
+@media(max-width:560px){.nav nav a:not(.btn){display:none}.nav .w{flex-wrap:nowrap}}
+.skip{position:absolute;left:-9999px;top:8px;z-index:100;background:#fff;color:var(--ink);padding:10px 14px;border-radius:8px;font-weight:600}.skip:focus{left:12px}
+a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #0f2a4a;outline-offset:2px}
+.nav a:focus-visible,footer a:focus-visible,.skip:focus-visible{outline-color:#F2B705}
+.card>h1:first-child{margin-top:0}.card h2{font-size:22px;margin:26px 0 6px}#signup h2{margin:0 0 4px}
+.hp{position:absolute!important;left:-10000px!important;width:1px;height:1px;overflow:hidden}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}"""
 
 
 def brand_link(dark: bool = True) -> str:
@@ -134,20 +138,44 @@ def page(title: str, body: str, desc: str = "") -> str:
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>{e(title)}</title>
 <meta name="description" content="{e(desc)}"><meta name="theme-color" content="#0f2a4a">
+<meta http-equiv="Content-Security-Policy" content="{csp()}"><meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" href="{SITE_URL}/assets/favicon.svg" type="image/svg+xml"><link rel="icon" href="{SITE_URL}/assets/favicon.ico" sizes="any"><link rel="apple-touch-icon" href="{SITE_URL}/assets/apple-touch-icon.png">{FONTS}<style>{CSS}</style></head><body>
+<a class="skip" href="#main">Skip to content</a>
 <header class="nav"><div class="w">{brand_link()}
 <nav><a href="{SITE_URL}/alerts.html">All alerts</a><a href="{SITE_URL}/brief.html">Weekly brief</a><a href="{SITE_URL}/#pricing">Plans</a><a href="{SITE_URL}/#faq">FAQ</a>{tg_link}
 <a class="btn" href="{SITE_URL}/#signup">Subscribe free</a></nav></div></header>
-<main class="w">{body}</main>
+<main class="w" id="main" tabindex="-1">{body}</main>
 <footer><div class="w"><div>{brand_link()}
-<p>Summaries are AI-generated from official notices for information only. Always verify with the official text. Not legal advice.</p></div>
+<p>Summaries are AI-generated from official notices for information only. Always verify with the official text. Not legal advice.</p>
+<p>{business_line()}</p></div>
 <div>{footer_links()}</div></div></footer></body></html>"""
+
+
+def csp() -> str:
+    """Content-Security-Policy (GitHub Pages can't send headers, so it goes in a meta tag)."""
+    sb = (os.getenv("SUPABASE_URL") or "").strip().rstrip("/")
+    return ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; "
+            f"form-action 'self'; connect-src 'self' {sb}; upgrade-insecure-requests")
+
+
+def business_line() -> str:
+    c = legal.cfg()
+    return (f"{e(c['company'])}, {e(c['address'] or c['city'])} · "
+            f'<a href="mailto:{e(c["email"])}">{e(c["email"])}</a>')
+
+
+def safe_url(u: str | None) -> str:
+    """Only http(s) links from scraped data, never javascript: or data: URLs."""
+    u = (u or "").strip()
+    return u if u.lower().startswith(("https://", "http://")) else ""
 
 
 def footer_links() -> str:
     tg = _tg()
     links = [f'<a href="{SITE_URL}/{f}">{t}</a>' for f, t in
-             (("privacy.html", "Privacy"), ("terms.html", "Terms"), ("refund.html", "Refunds"), ("contact.html", "Contact"))]
+             (("privacy.html", "Privacy"), ("terms.html", "Terms"), ("refund.html", "Refunds"), ("cookies.html", "Cookies"),
+              ("contact.html", "Contact"), ("your-data.html", "Your data"))]
     if tg:
         links.append(f'<a href="https://t.me/{e(tg)}">Telegram</a>')
     company = e(os.getenv("LEGAL_NAME") or "DharaLabs")
@@ -187,15 +215,16 @@ def signup_form(sectors: list[str]) -> str:
                          for g in _product_groups()], ensure_ascii=False).replace("</", "<\\/")
     return f"""<div class="card" id="signup"><h2>Get free weekly alerts</h2>
 <div class="m">Plain-English summaries in your inbox. Unsubscribe anytime.</div>
-<form id="f" autocomplete="off"><label class="l" for="f-email">Work email</label><input id="f-email" name="email" type="email" required placeholder="you@yourfirm.in">
-<label class="l" for="f-co">Company <span class="m">(optional)</span></label><input id="f-co" name="company" placeholder="Company name">
+<form id="f" autocomplete="on"><label class="l" for="f-email">Work email</label><input id="f-email" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@yourfirm.in">
+<label class="l" for="f-co">Company <span class="m">(optional)</span></label><input id="f-co" name="company" autocomplete="organization" maxlength="120" placeholder="Company name">
 <label class="l" for="f-prod">What do you trade? <span class="m">(we pick the HS codes for you)</span></label>
 <input id="f-prod" placeholder="Type a product, e.g. jewellery, rice, carpets, steel">
 <div id="sugg" class="sugg"></div><div id="picked"></div>
-<label class="l" for="f-hs">More HS codes <span class="m">(optional, comma separated)</span></label><input id="f-hs" name="hs" placeholder="e.g. 3923, 7113">
+<label class="l" for="f-hs">More HS codes <span class="m">(optional, comma separated)</span></label><input id="f-hs" name="hs" maxlength="200" placeholder="e.g. 3923, 7113">
 <label class="l" for="f-sec">Main sector <span class="m">(optional)</span></label><select id="f-sec" name="sector"><option value="">Choose a sector</option>{opts}</select>
-<label class="m agree"><input type="checkbox" required> I agree to receive alert emails and can unsubscribe anytime.</label>
-<button class="btn">Subscribe free</button><div id="msg" class="m" aria-live="polite"></div></form></div>
+<label class="m agree"><input type="checkbox" required> <span>I am 18 or older and agree to receive alert emails. I can unsubscribe anytime. See the <a href="{SITE_URL}/privacy.html">Privacy Policy</a>.</span></label>
+<div class="hp" aria-hidden="true"><label for="f-web">Leave empty</label><input id="f-web" name="website" tabindex="-1" autocomplete="off"></div>
+<button class="btn">Subscribe free</button><div id="msg" class="m" role="status" aria-live="polite"></div></form></div>
 <script>const C={cfg},G={groups};
 (function(){{const inp=document.getElementById('f-prod'),sg=document.getElementById('sugg'),pk=document.getElementById('picked');
 const chosen=new Map();
@@ -203,7 +232,7 @@ function esc(t){{return String(t).replace(/[&<>"]/g,c=>({{'&':'&amp;','<':'&lt;'
 function render(){{pk.innerHTML='';chosen.forEach((codes,name)=>{{const box=document.createElement('div');box.className='grp';
 box.innerHTML='<div class="grp-h"><b>'+esc(name)+'</b><button type="button" class="x" title="Remove group">Remove</button></div><div class="codes"></div>';
 box.querySelector('.x').onclick=()=>{{chosen.delete(name);render();}};
-const cw=box.querySelector('.codes');codes.forEach(c=>{{const ch=document.createElement('span');ch.className='code';ch.innerHTML='# '+esc(c)+' <button type="button" title="Remove code">×</button>';
+const cw=box.querySelector('.codes');codes.forEach(c=>{{const ch=document.createElement('span');ch.className='code';ch.innerHTML='# '+esc(c)+' <button type="button" aria-label="Remove code '+esc(c)+'">×</button>';
 ch.querySelector('button').onclick=()=>{{codes.delete(c);if(!codes.size)chosen.delete(name);render();}};cw.appendChild(ch);}});pk.appendChild(box);}});
 if(chosen.size){{const n=document.createElement('div');n.className='m';n.textContent='These codes are suggestions. Remove any you do not trade, or add more below.';pk.appendChild(n);}}}}
 function add(g){{chosen.set(g.n,new Set(g.c));inp.value='';sg.innerHTML='';render();}}
@@ -215,15 +244,15 @@ inp.addEventListener('keydown',ev=>{{if(ev.key==='Enter'){{ev.preventDefault();c
 window.__pickedCodes=()=>{{const a=[];chosen.forEach(s=>s.forEach(c=>a.push(c)));return a;}};
 window.__resetPicked=()=>{{chosen.clear();render();}};}})();
 document.getElementById('f').onsubmit=async ev=>{{ev.preventDefault();
-const d=new FormData(ev.target),m=document.getElementById('msg');m.textContent='Saving…';
+const d=new FormData(ev.target),m=document.getElementById('msg');if(d.get('website')){{m.textContent='Thank you.';return;}}m.textContent='Saving…';
 const manual=(d.get('hs')||'').split(',').map(x=>x.replace(/\\D/g,'')).filter(x=>x.length>=2&&x.length<=8);
-const body={{email:d.get('email').trim().toLowerCase(),company:d.get('company')||null,
-hs_prefixes:[...new Set([...window.__pickedCodes(),...manual])],
+const body={{email:d.get('email').trim().toLowerCase(),company:(d.get('company')||'').slice(0,120)||null,
+hs_prefixes:[...new Set([...window.__pickedCodes(),...manual])].slice(0,60),
 sectors:d.get('sector')?[d.get('sector')]:[]}};
 try{{const r=await fetch(C.url+'/rest/v1/subscribers',{{method:'POST',headers:{{apikey:C.key,Authorization:'Bearer '+C.key,
 'Content-Type':'application/json',Prefer:'return=minimal'}},body:JSON.stringify(body)}});
-m.textContent=r.ok?'Done! Your first weekly digest arrives within 7 days.':(r.status===409?'You are already subscribed.':'Something went wrong — try again.');
-if(r.ok){{ev.target.reset();window.__resetPicked();}}}}catch(_){{m.textContent='Network error — try again.'}}}};</script>"""
+m.textContent=(r.ok||r.status===409)?'Thank you. Your weekly digest will arrive within 7 days (if this email was already subscribed, nothing changes).':'Something went wrong. Please try again.';
+if(r.ok||r.status===409){{ev.target.reset();window.__resetPicked();}}}}catch(_){{m.textContent='Network error — try again.'}}}};</script>"""
 
 
 def _inr(n: int) -> str:
@@ -287,7 +316,7 @@ def pricing() -> str:
 
 
 def trust() -> str:
-    items = (("doc", "From official sources", "DGFT notices read every morning; Customs &amp; BIS coming soon"),
+    items = (("doc", "From official sources", "DGFT notices, checked daily; every alert links the official notice"),
              ("plain", "Written plainly", "What changed, who is affected, what to do"),
              ("hash", "Matched to your HS codes", "Only the changes that touch your products"),
              ("send", "Email or Telegram", "Wherever you read first"))
@@ -309,9 +338,9 @@ def alerts_page(notices: list[dict]) -> str:
     return f"""<div class="page-h"><div class="eyebrow"><i></i>Archive</div><h1>All alerts</h1>
 <p class="m" style="font-size:15px">Every DGFT notification, public notice and trade notice we have summarised, newest first.
 Want only the ones for your HS codes? <a href="{SITE_URL}/#signup">Subscribe free</a>.</p></div>
-<div class="card filters"><input id="q" type="search" placeholder="Search by word, notice number or HS code (e.g. 3923)">
-<select id="fk"><option value="">All types</option>{kopts}</select>
-<select id="fi"><option value="">All impact</option><option value="high">High impact</option><option value="medium">Medium impact</option><option value="low">Low impact</option></select></div>
+<div class="card filters"><input id="q" type="search" aria-label="Search alerts" placeholder="Search by word, notice number or HS code (e.g. 3923)">
+<select id="fk" aria-label="Filter by notice type"><option value="">All types</option>{kopts}</select>
+<select id="fi" aria-label="Filter by impact"><option value="">All impact</option><option value="high">High impact</option><option value="medium">Medium impact</option><option value="low">Low impact</option></select></div>
 <div class="m" id="count">{len(notices)} alerts</div>
 <div id="list">{''.join(cards)}</div>
 <script>(function(){{var q=document.getElementById('q'),fk=document.getElementById('fk'),fi=document.getElementById('fi'),
@@ -352,7 +381,7 @@ def brief_page(by_date: list[dict]) -> str:
     cards = "".join(notice_card(n) for n in week)
     return f"""<div class="page-h"><div class="eyebrow"><i></i>Weekly brief</div><h1>{head}</h1>
 <p class="m" style="font-size:15px">Free to forward to your members, clients or WhatsApp groups. Updated every day; please keep the link to {e(SITE_NAME)}.</p></div>
-<div class="card"><b>Copy and paste</b><textarea id="bt" readonly rows="14" style="width:100%;font:13px/1.5 var(--mono);margin-top:8px">{e(txt)}</textarea>
+<div class="card"><b>Copy and paste</b><textarea id="bt" aria-label="Weekly brief text to copy" readonly rows="14" style="width:100%;font:13px/1.5 var(--mono);margin-top:8px">{e(txt)}</textarea>
 <div><button class="btn" id="cp" type="button">Copy text</button>
 <a class="btn ghost" href="https://wa.me/?text={e(quote(txt))}" rel="noopener">Share on WhatsApp</a></div><div class="m" id="cpm"></div></div>
 {cards}
@@ -370,8 +399,8 @@ def build(notices: list[dict], sectors: list[str], out: str = "public") -> int:
     for n in ranked:
         s = n["summary"]
         hs = ", ".join(n.get("hs_codes") or [])
-        official = (f'<a class="btn" href="{e(n["url"])}" rel="noopener">{icon("ext", 16, "#fff")} Read official document</a>'
-                    if n.get("url") else "")
+        official = (f'<a class="btn" href="{e(safe_url(n.get("url")))}" rel="noopener">{icon("ext", 16, "#fff")} Read official document</a>'
+                    if safe_url(n.get("url")) else "")
         cal = ('<br><span class="cal">' + calendar_links(n).lstrip(' ·') + '</span>') if s.get('deadline') else ''
         detail = f"""<div class="card"><div class="rows">
 <span>Who is affected</span><span>{e(s.get('who_is_affected') or '—')}</span>
@@ -396,8 +425,8 @@ def build(notices: list[dict], sectors: list[str], out: str = "public") -> int:
     tg_btn = f' <a class="btn ghost" href="https://t.me/{e(tg)}">Join on Telegram</a>' if tg else ""
     home = f"""<section class="hero"><div>
 <div class="eyebrow"><i></i>DGFT notices · explained daily</div>
-<h1>India’s trade rules, written plainly. <span>Every morning.</span></h1>
-<p>Every morning we read new DGFT notifications, public notices and trade notices, explain them in plain English
+<h1>India’s trade rules, written plainly. <span>Matched to your products.</span></h1>
+<p>We read every new DGFT notification, public notice and trade notice, explain it in plain English
 (with a Hindi line) and tell you what to do and by when — filtered to your HS codes.</p>
 <div><a class="btn" href="{SITE_URL}/alerts.html">See all alerts</a>{tg_btn}</div>
 <p class="deva" style="margin-top:28px;font-size:20px">सागरलेख — सरल भाषा में व्यापार नियम</p></div>
@@ -406,10 +435,19 @@ def build(notices: list[dict], sectors: list[str], out: str = "public") -> int:
     (root / "index.html").write_text(page(f"{SITE_NAME} — DGFT alerts for exporters", home,
                                           "Plain-English alerts on DGFT notifications, public notices and trade notices for Indian exporters, matched to your HS codes."), encoding="utf-8")
     cfg = json.dumps({"url": os.getenv("SUPABASE_URL", ""), "key": os.getenv("SUPABASE_ANON_KEY", "")})
-    (root / "unsubscribe.html").write_text(page("Unsubscribe", f"""<div class="page-h"><h1>Unsubscribe</h1></div><div class="card" id="u">Unsubscribing…</div>
-<script>const C={cfg};const t=new URLSearchParams(location.search).get('t');
-fetch(C.url+'/rest/v1/rpc/unsubscribe',{{method:'POST',headers:{{apikey:C.key,Authorization:'Bearer '+C.key,'Content-Type':'application/json'}},
-body:JSON.stringify({{token:t}})}}).then(r=>document.getElementById('u').textContent=r.ok?'You have been unsubscribed.':'Link invalid or expired.');</script>"""), encoding="utf-8")
+    (root / "unsubscribe.html").write_text(page("Unsubscribe", f"""<div class="page-h"><h1 id="uh">Unsubscribe</h1></div>
+<div class="card"><p id="u" role="status" aria-live="polite">Working…</p>
+<div id="del" hidden><p>This deletes your email, products and plan from our database for good. Payment records required by tax law are kept.</p>
+<button class="btn" id="delbtn" type="button">Yes, delete my data</button></div></div>
+<script>const C={cfg};const q=new URLSearchParams(location.search),t=q.get('t'),u=document.getElementById('u');
+const call=(fn)=>fetch(C.url+'/rest/v1/rpc/'+fn,{{method:'POST',headers:{{apikey:C.key,Authorization:'Bearer '+C.key,'Content-Type':'application/json'}},
+body:JSON.stringify({{token:t}})}}).then(r=>r.ok?r.json():null).catch(()=>null);
+if(!t){{u.textContent='This link is incomplete. Use the link in your email, or write to us.';}}
+else if(q.get('delete')==='1'){{document.getElementById('uh').textContent='Delete my data';u.textContent='Please confirm.';
+document.getElementById('del').hidden=false;document.getElementById('delbtn').onclick=async()=>{{u.textContent='Deleting…';
+const ok=await call('delete_my_data');document.getElementById('del').hidden=true;
+u.textContent=ok===true?'Done. Your data has been deleted and you will get no more emails.':'This link is invalid or the data was already deleted.';}};}}
+else{{call('unsubscribe').then(ok=>u.textContent=ok===true?'You have been unsubscribed. You will get no more alert emails.':'This link is invalid or you were already unsubscribed.');}}</script>"""), encoding="utf-8")
     urls = [f"{SITE_URL}/", f"{SITE_URL}/alerts.html", f"{SITE_URL}/brief.html"] + [f"{SITE_URL}/{f}" for f in legal.pages()] + [f"{SITE_URL}/n/{n['id']}.html" for n in ranked]
     (root / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
                                       + "".join(f"<url><loc>{u}</loc></url>" for u in urls) + "</urlset>", encoding="utf-8")

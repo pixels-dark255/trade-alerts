@@ -1,5 +1,4 @@
 # Pricing page content. Edit text here; no code changes needed.
-# A feature with `soon: true` shows a "Coming soon" tag. Never mark something live until it works.
 
 intro: >-
   Notice summaries are easy to find. Knowing which notices affect your products, what to do,
@@ -18,22 +17,12 @@ plans:
     for: For exporters and importers
     monthly: {price: 299, url: "https://rzp.io/rzp/sagarlekh-pro-monthly"}
     yearly:  {price: 2999, url: "https://rzp.io/rzp/sagarlekh-pro-yearly"}
-    # Launch offer. Delete these 4 lines to end it.
-    offer:
-      price: 99
-      url: "https://rzp.io/rzp/sagarlekh-pro-first-month"
-      label: "Launch offer: your first month for ₹99"
-      note: "For new Pro subscribers until 31 Dec 2026. After that, ₹299/month or ₹2,999/year."
     features:
       - {text: "Only the notices that match your products: pick product groups (we fill in the HS codes) or add your own codes"}
       - {text: "Same-day email alerts instead of a weekly round-up"}
       - {text: "On every alert: what changed, who is affected, the action to take, the deadline and the official PDF"}
       - {text: "Add deadlines to Google, Outlook or Apple Calendar in one click"}
       - {text: "Ask us about a notice: 2 questions a month, answered within 48 hours"}
-      - {text: "Monthly recap of the changes that affected your codes", soon: true}
-      - {text: "Search across all past notices", soon: true}
-      - {text: "CBIC Customs and BIS Quality Control Order coverage", soon: true}
-      - {text: "Alerts on WhatsApp", soon: true}
 
   - name: Firm
     for: For customs brokers, CAs and EXIM consultants
@@ -44,17 +33,13 @@ plans:
       - {text: "Track the HS codes of up to 25 clients in one daily digest"}
       - {text: "Alerts for up to 5 team members"}
       - {text: "Priority questions: 10 a month, answered within 24 hours"}
-      - {text: "A separate digest for each client", soon: true}
-      - {text: "Client-ready digests under your firm's name and logo", soon: true}
-      - {text: "Per-client deadline tracker with CSV export", soon: true}
 
 perks:
-  - "Launch offer: try Pro for ₹99 for your first month (new subscribers, until 31 Dec 2026)."
   - "Founding members: the first 50 paid subscribers keep today's price for as long as they stay subscribed."
-  - "Try Pro free for 14 days: subscribe free, then email hello@dharalabs.in with the word TRIAL."
+  - "Try Pro free for 14 days: subscribe free, then email dharalabs.co@gmail.com with the word TRIAL."
   - "Yearly plans cost about the same as 10 months."
   - "7-day full refund on your first payment, no questions asked."
-  - "If we get an alert wrong, we send a correction within one working day."
+  - "Found a mistake in an alert? Tell us and we fix the page and tell subscribers who received it."
 
 compare:
   header: ["", "Free", "Pro", "Firm"]
@@ -65,16 +50,14 @@ compare:
     - ["Add deadlines to your calendar", "On the website", "Website + email", "Website + email"]
     - ["Questions answered", "—", "2 a month, within 48 h", "10 a month, within 24 h"]
     - ["Team members", "1", "1", "Up to 5"]
-    - ["Monthly recap", "—", "Coming soon", "Coming soon"]
-    - ["Per-client digests, your own branding", "—", "—", "Coming soon"]
     - ["Price", "₹0", "₹299/month or ₹2,999/year", "₹1,999/month or ₹19,999/year"]
 
 faq:
   - q: How accurate are the alerts?
     a: >-
       Each alert is written by AI from the official notice, and every alert links to that notice.
-      We spot-check summaries against the PDFs. Mistakes can still happen, so always confirm with the
-      official text before you act. If we find an error, we send a correction within one working day.
+      Mistakes can happen, so always confirm with the official text before you act. If you spot an error,
+      tell us: we fix the page and tell the subscribers who received that alert.
   - q: Is this legal or tax advice?
     a: >-
       No. Sagarlekh is an information service. For decisions about your shipments, licences or duties,
@@ -86,21 +69,25 @@ faq:
       You can also pick a sector. Major procedural changes that affect all exporters go to everyone.
   - q: When do alerts arrive?
     a: >-
-      We check DGFT every morning. Paid subscribers get their email the same day, usually by 1 pm IST.
-      The free digest goes out once a week.
+      We check DGFT daily. Paid subscribers get an email the same day a notice touches their HS codes,
+      usually by 1 pm IST. DGFT publishes irregularly, so some weeks have no alerts. The free digest goes out once a week.
   - q: Which sources do you cover?
     a: >-
-      Today: DGFT notifications, public notices and trade notices. CBIC Customs notifications and BIS
-      Quality Control Orders are coming soon.
+      DGFT notifications, public notices and trade notices. We do not cover CBIC Customs notifications
+      or BIS Quality Control Orders yet.
   - q: How do I upgrade, and when does it start?
     a: >-
       Pay using the button for your plan and enter the same email you subscribed with. Your plan is
       switched on within 24 hours. Plans do not renew automatically; you pay for each month or year.
       We email you a renewal link 3 days before your plan ends.
+  - q: Are there any extra fees?
+    a: >-
+      No. The price shown is the full price you pay. We add no extra charges at checkout, and plans never renew
+      or charge you automatically.
   - q: Can I cancel or get a refund?
     a: >-
       You can stop at any time; your plan stays active until the end of the period you paid for.
-      If you are not happy within 7 days of your first payment, email hello@dharalabs.in for a full refund.
+      If you are not happy within 7 days of your first payment, email dharalabs.co@gmail.com for a full refund.
   - q: What do you do with my data?
     a: >-
       We store only your email, company name, HS codes and sector to send your alerts. We never sell it.

@@ -89,16 +89,17 @@ def _form(key: str, p: dict) -> str:
     q, ph = p["fields"]
     return f"""<div class="card" id="join"><h2 style="margin-top:0">Join the pilot</h2>
 <form id="pf" autocomplete="on">
-<label class="l" for="p-name">Your name</label><input id="p-name" name="name" required>
-<label class="l" for="p-email">Work email</label><input id="p-email" name="email" type="email" required placeholder="you@yourfirm.in">
-<label class="l" for="p-co">Company</label><input id="p-co" name="company" required>
-<label class="l" for="p-city">City</label><input id="p-city" name="city">
-<label class="l" for="p-phone">Phone / WhatsApp <span class="m">(optional, only if you want a call)</span></label><input id="p-phone" name="phone">
-<label class="l" for="p-q">{e(q)}</label><textarea id="p-q" name="details" rows="3" placeholder="{e(ph)}"></textarea>
-<label class="m agree"><input type="checkbox" required> I agree to be contacted about this pilot.</label>
-<button class="btn">Request a pilot spot</button><div id="pm" class="m" aria-live="polite"></div></form></div>
+<label class="l" for="p-name">Your name</label><input id="p-name" name="name" autocomplete="name" required maxlength="100">
+<label class="l" for="p-email">Work email</label><input id="p-email" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@yourfirm.in">
+<label class="l" for="p-co">Company</label><input id="p-co" name="company" autocomplete="organization" required maxlength="120">
+<label class="l" for="p-city">City</label><input id="p-city" name="city" autocomplete="address-level2" maxlength="80">
+<label class="l" for="p-phone">Phone / WhatsApp <span class="m">(optional, only if you want a call)</span></label><input id="p-phone" name="phone" type="tel" autocomplete="tel" maxlength="20">
+<label class="l" for="p-q">{e(q)}</label><textarea id="p-q" name="details" rows="3" maxlength="1000" placeholder="{e(ph)}"></textarea>
+<label class="m agree"><input type="checkbox" required> <span>I am 18 or older and agree to be contacted about this pilot. See the <a href="/privacy.html">Privacy Policy</a>.</span></label>
+<div class="hp" aria-hidden="true"><label for="p-web">Leave empty</label><input id="p-web" name="website" tabindex="-1" autocomplete="off"></div>
+<button class="btn">Request a pilot spot</button><div id="pm" class="m" role="status" aria-live="polite"></div></form></div>
 <script>const PC={cfg};document.getElementById('pf').onsubmit=async ev=>{{ev.preventDefault();
-const d=new FormData(ev.target),m=document.getElementById('pm');m.textContent='Sending…';
+const d=new FormData(ev.target),m=document.getElementById('pm');if(d.get('website')){{m.textContent='Thank you.';return;}}m.textContent='Sending…';
 const body={{offer:'{key}',name:d.get('name'),email:(d.get('email')||'').trim().toLowerCase(),company:d.get('company'),
 city:d.get('city')||null,phone:d.get('phone')||null,details:d.get('details')||null,page:location.pathname}};
 try{{const r=await fetch(PC.url+'/rest/v1/pilot_interest',{{method:'POST',headers:{{apikey:PC.key,Authorization:'Bearer '+PC.key,
