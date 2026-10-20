@@ -136,6 +136,14 @@ def publish(sectors, db, now, report, errors) -> int:
     # 5. Rebuild SEO site
     try:
         report.append(f"site pages: {sitegen.build(db.all_notices(), sectors)}")
+        import pilots
+        report.append(f"pilot pages: {len(pilots.build('public'))}")
+        since = (now - timedelta(hours=26)).isoformat()
+        r = db.c.get("/pilot_interest", params={"select": "offer,name,company,email,phone,details", "created_at": f"gte.{since}"})
+        if r.status_code == 200:
+            for x in r.json():
+                report.append(f"PILOT SIGN-UP ({x['offer']}): {x.get('name')}, {x.get('company')}, {x.get('email')}, "
+                              f"{x.get('phone') or ''} - {x.get('details') or ''}")
     except Exception as ex:
         errors.append(f"site build: {ex!r}")
     return sent
