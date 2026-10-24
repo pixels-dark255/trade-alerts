@@ -143,7 +143,7 @@ def page(title: str, body: str, desc: str = "") -> str:
 <a class="skip" href="#main">Skip to content</a>
 <header class="nav"><div class="w">{brand_link()}
 <nav><a href="{SITE_URL}/alerts.html">All alerts</a><a href="{SITE_URL}/brief.html">Weekly brief</a><a href="{SITE_URL}/#pricing">Plans</a><a href="{SITE_URL}/#faq">FAQ</a>{tg_link}
-<a class="btn" href="{SITE_URL}/#signup">Subscribe free</a></nav></div></header>
+<a class="btn" href="{SITE_URL}/#signup">Free trial</a></nav></div></header>
 <main class="w" id="main" tabindex="-1">{body}</main>
 <footer><div class="w"><div>{brand_link()}
 <p>Summaries are AI-generated from official notices for information only. Always verify with the official text. Not legal advice.</p>
@@ -213,8 +213,8 @@ def signup_form(sectors: list[str]) -> str:
     cfg = json.dumps({"url": os.getenv("SUPABASE_URL", ""), "key": os.getenv("SUPABASE_ANON_KEY", "")})
     groups = json.dumps([{"n": g["name"], "k": [k.lower() for k in g.get("keywords", [])], "c": [str(c) for c in g["codes"]]}
                          for g in _product_groups()], ensure_ascii=False).replace("</", "<\\/")
-    return f"""<div class="card" id="signup"><h2>Get free weekly alerts</h2>
-<div class="m">Plain-English summaries in your inbox. Unsubscribe anytime.</div>
+    return f"""<div class="card" id="signup"><h2>Start your 14-day free trial</h2>
+<div class="m">Same-day alerts for your products for 14 days, then a free weekly digest. No card. Nothing is ever charged automatically.</div>
 <form id="f" autocomplete="on"><label class="l" for="f-email">Work email</label><input id="f-email" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@yourfirm.in">
 <label class="l" for="f-co">Company <span class="m">(optional)</span></label><input id="f-co" name="company" autocomplete="organization" maxlength="120" placeholder="Company name">
 <label class="l" for="f-prod">What do you trade? <span class="m">(we pick the HS codes for you)</span></label>
@@ -224,7 +224,7 @@ def signup_form(sectors: list[str]) -> str:
 <label class="l" for="f-sec">Main sector <span class="m">(optional)</span></label><select id="f-sec" name="sector"><option value="">Choose a sector</option>{opts}</select>
 <label class="m agree"><input type="checkbox" required> <span>I am 18 or older and agree to receive alert emails. I can unsubscribe anytime. See the <a href="{SITE_URL}/privacy.html">Privacy Policy</a>.</span></label>
 <div class="hp" aria-hidden="true"><label for="f-web">Leave empty</label><input id="f-web" name="website" tabindex="-1" autocomplete="off"></div>
-<button class="btn">Subscribe free</button><div id="msg" class="m" role="status" aria-live="polite"></div></form></div>
+<button class="btn">Start free trial</button><div id="msg" class="m" role="status" aria-live="polite"></div></form></div>
 <script>const C={cfg},G={groups};
 (function(){{const inp=document.getElementById('f-prod'),sg=document.getElementById('sugg'),pk=document.getElementById('picked');
 const chosen=new Map();
@@ -251,7 +251,7 @@ hs_prefixes:[...new Set([...window.__pickedCodes(),...manual])].slice(0,60),
 sectors:d.get('sector')?[d.get('sector')]:[]}};
 try{{const r=await fetch(C.url+'/rest/v1/subscribers',{{method:'POST',headers:{{apikey:C.key,Authorization:'Bearer '+C.key,
 'Content-Type':'application/json',Prefer:'return=minimal'}},body:JSON.stringify(body)}});
-m.textContent=(r.ok||r.status===409)?'Thank you. Your weekly digest will arrive within 7 days (if this email was already subscribed, nothing changes).':'Something went wrong. Please try again.';
+m.textContent=(r.ok||r.status===409)?'Done. Your 14-day free trial has started. Within 24 hours you get a welcome email with the recent DGFT notices for your products. (If this email was already subscribed, nothing changes.)':'Something went wrong. Please try again.';
 if(r.ok||r.status===409){{ev.target.reset();window.__resetPicked();}}}}catch(_){{m.textContent='Network error — try again.'}}}};</script>"""
 
 

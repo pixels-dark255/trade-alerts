@@ -36,7 +36,7 @@ plans:
 
 perks:
   - "Founding members: the first 50 paid subscribers keep today's price for as long as they stay subscribed."
-  - "Try Pro free for 14 days: subscribe free, then email dharalabs.co@gmail.com with the word TRIAL."
+  - "Every new sign-up gets Pro free for 14 days. No card needed, nothing is charged; afterwards you move to the free weekly digest unless you choose a plan."
   - "Yearly plans cost about the same as 10 months."
   - "7-day full refund on your first payment, no questions asked."
   - "Found a mistake in an alert? Tell us and we fix the page and tell subscribers who received it."
@@ -84,6 +84,11 @@ faq:
     a: >-
       No. The price shown is the full price you pay. We add no extra charges at checkout, and plans never renew
       or charge you automatically.
+  - q: Is there a free trial?
+    a: >-
+      Yes. Everyone who signs up gets Pro free for 14 days: same-day alerts for your HS codes and a welcome email with the
+      recent notices that touch them. No card is needed and nothing is charged. When the trial ends you move to the free
+      weekly digest automatically. Customs brokers and consultants can email dharalabs.co@gmail.com for a Firm trial.
   - q: Can I cancel or get a refund?
     a: >-
       You can stop at any time; your plan stays active until the end of the period you paid for.

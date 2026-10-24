@@ -101,11 +101,32 @@ def publish(sectors, db, now, report, errors) -> int:
     except Exception as ex:
         errors.append(f"renewals: {ex!r}")
 
+    # 4b. Welcome email for new sign-ups: trial start + matching notices from the last 90 days
+    sent = 0
+    try:
+        recent = [n for n in db.all_notices()
+                  if n.get("summary") and str(n.get("notice_date") or "") >= (now - timedelta(days=90)).date().isoformat()]
+        for sub in db.active_subscribers():
+            if sub.get("welcome_sent_at") or sent >= MAX_EMAILS:
+                continue
+            if sub.get("hs_prefixes") or sub.get("sectors"):
+                items = digest.rank([n for n in recent if digest.matches(n, sub)])
+            else:
+                items = digest.rank([n for n in recent if n.get("impact") in ("high", "medium")])[:5]
+            subject, body = digest.render_welcome(sub, items)
+            if not DRY:
+                digest.send_email(sub["email"], subject, body,
+                                  f"{digest.SITE_URL}/unsubscribe.html?t={sub['unsubscribe_token']}")
+                db.mark_welcomed(sub["id"])
+            sent += 1
+        report.append(f"welcome emails: {sent}")
+    except Exception as ex:
+        errors.append(f"welcome emails: {ex!r}")
+
     # 4. Publish — email
     day = [n for n in db.notices_since((now - timedelta(hours=26)).isoformat()) if n.get("summary")]
     week = [n for n in db.notices_since((now - timedelta(days=7)).isoformat())
             if n.get("summary") and n.get("impact") in ("high", "medium")]
-    sent = 0
     subs = sorted(db.active_subscribers(), key=lambda s: s["plan"] == "free")  # paid first
     for sub in subs:
         if sent >= MAX_EMAILS:
@@ -166,6 +187,22 @@ def renew_paid(db, now, report, errors) -> None:
     today = now.date()
     for sub in db.active_subscribers():
         if sub["plan"] not in ("pro", "firm"):
+            continue
+        if sub.get("trial"):                                  # automatic 14-day trial for every new sign-up
+            if not sub.get("paid_until"):
+                continue
+            left = (date.fromisoformat(str(sub["paid_until"])[:10]) - today).days
+            if left < 0:
+                if not DRY:
+                    db.downgrade(sub["id"])
+                sub["plan"] = "free"
+                report.append(f"trial ended, moved to free: {sub['email']}")
+            elif left in (3, 0):
+                report.append(f"trial ends in {left} day(s): {sub['email']}")
+                if not DRY and os.getenv("RESEND_API_KEY"):
+                    subject, body = digest.render_trial_end(sub, left)
+                    digest.send_email(sub["email"], subject, body,
+                                      f"{digest.SITE_URL}/unsubscribe.html?t={sub['unsubscribe_token']}")
             continue
         if not sub.get("paid_until"):
             errors.append(f"{sub['email']} is on {sub['plan']} with no paid_until date — set it in Supabase")

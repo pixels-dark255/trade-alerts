@@ -173,3 +173,48 @@ HS codes, renew with the same email address:</p>
 <p style="font-size:13px;color:#555">If you don't renew, you'll move to the free weekly digest. Nothing else changes.
 Questions? Just reply to this email.</p>{email_footer(sub)}</div>"""
     return f"Your {SITE_NAME} {plan.title()} plan ends {when}", body
+
+
+TRIAL_DAYS = 14
+
+
+def render_welcome(sub: dict, notices: list[dict]) -> tuple[str, str]:
+    """First email after sign-up: confirms the trial and shows the recent notices that match the subscriber's codes."""
+    e = html.escape
+    trial = bool(sub.get("trial"))
+    codes = ", ".join(sub.get("hs_prefixes") or []) or "all DGFT changes"
+    rows = "".join(
+        f'<li style="margin:8px 0"><b>{e((n.get("summary") or {}).get("headline") or n["title"])}</b> '
+        f'<span style="color:#555">({e(n.get("notice_date") or "")})</span><br>'
+        f'{e((n.get("summary") or {}).get("action_required") or "")} '
+        f'<a href="{SITE_URL}/n/{n["id"]}.html">Details</a></li>' for n in notices[:10])
+    lead = (f"Here are the DGFT changes from the last 90 days that touch your codes ({e(codes)}):"
+            if sub.get("hs_prefixes") else "Here are the most important DGFT changes from the last 90 days:")
+    found = (f"<p>{lead}</p><ol>{rows}</ol>"
+             if rows else f"<p>No DGFT notice in the last 90 days touched your codes ({e(codes)}). That is normal: DGFT "
+                          "publishes irregularly. We will email you the same day one does.</p>")
+    intro = (f"<p>Your <b>{TRIAL_DAYS}-day free trial</b> has started, until {e(str(sub.get('paid_until') or ''))}. "
+             "During the trial you get an email the same day a DGFT notice touches your HS codes. "
+             "No card, nothing is charged. After the trial you move to the free weekly digest unless you choose a paid plan.</p>"
+             if trial else "<p>You are subscribed to the free weekly digest of important DGFT changes.</p>")
+    body = f"""<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto">
+<h2 style="margin-bottom:0">{e(SITE_NAME)}</h2><p>Namaste,</p>{intro}{found}
+<p style="font-size:13px;color:#555">Want different products or codes? Just reply to this email.</p>{email_footer(sub)}</div>"""
+    subj = f"Your {TRIAL_DAYS}-day free trial has started" if trial else f"Welcome to {SITE_NAME}"
+    return f"{subj}: {len(notices[:10])} recent notice(s) for your codes", body
+
+
+def render_trial_end(sub: dict, days_left: int) -> tuple[str, str]:
+    e = html.escape
+    links = plan_links("pro")
+    when = "today" if days_left <= 0 else f"in {days_left} days"
+    btns = "".join(
+        f'<a href="{e(v["url"])}" style="display:inline-block;background:#0f2a4a;color:#fff;text-decoration:none;'
+        f'padding:10px 16px;border-radius:8px;margin:4px 8px 4px 0">Pro {k} Rs {v["price"]:,}</a>'
+        for k, v in links.items())
+    body = f"""<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto">
+<h2 style="margin-bottom:0">{e(SITE_NAME)}</h2><p>Namaste,</p>
+<p>Your free trial ends {when}. Nothing will be charged. After it ends you move to the free weekly digest automatically.</p>
+<p>If you want to keep same-day alerts for your HS codes, choose a plan with the same email address:</p><p>{btns}</p>
+<p style="font-size:13px;color:#555">Advising many exporter clients? Reply and ask about the Firm plan.</p>{email_footer(sub)}</div>"""
+    return f"Your {SITE_NAME} free trial ends {when}", body

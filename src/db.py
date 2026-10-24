@@ -54,3 +54,7 @@ class DB:
     def downgrade(self, subscriber_id: str) -> None:
         self.c.patch("/subscribers", params={"id": f"eq.{subscriber_id}"},
                      json={"plan": "free", "paid_until": None}).raise_for_status()
+
+    def mark_welcomed(self, subscriber_id: str) -> None:
+        self.c.patch("/subscribers", params={"id": f"eq.{subscriber_id}"},
+                     json={"welcome_sent_at": "now()"}).raise_for_status()

@@ -153,3 +153,37 @@ returns boolean language sql security definer set search_path = public as $$
 $$;
 revoke all on function unsubscribe(uuid), delete_my_data(uuid), rate_limit() from public;
 grant execute on function unsubscribe(uuid), delete_my_data(uuid) to anon;
+
+-- =====================================================================================================
+-- v21 (24 Oct 2026): automatic 14-day Pro trial for EVERY new sign-up + welcome email. Safe to re-run.
+-- =====================================================================================================
+alter table subscribers add column if not exists trial boolean not null default false;
+alter table subscribers add column if not exists welcome_sent_at timestamptz;
+-- people who signed up before today already had their first emails: don't send them a "welcome"
+update subscribers set welcome_sent_at = coalesce(welcome_sent_at, now()) where created_at < now();
+
+-- every sign-up from the public website starts as a 14-day Pro trial (the daily run moves it back to free)
+create or replace function start_trial() returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(nullif(current_setting('request.jwt.claims', true), '')::json->>'role', '') = 'anon' then
+    new.plan := 'pro'; new.trial := true; new.paid_until := current_date + 14; new.welcome_sent_at := null;
+  end if;
+  return new;
+end $$;
+revoke all on function start_trial() from public;
+drop trigger if exists a_start_trial on subscribers;
+create trigger a_start_trial before insert on subscribers for each row execute function start_trial();
+
+-- the public sign-up rule now allows exactly that trial row (still nothing else)
+drop policy if exists "public signup" on subscribers;
+create policy "public signup" on subscribers for insert to anon with check (
+  plan = 'pro' and trial and paid_until = current_date + 14 and welcome_sent_at is null
+  and status = 'active' and unsubscribed_at is null and name is null
+  and email ~* '^[^@\s]{1,64}@[^@\s]+\.[a-z]{2,}$' and length(email) <= 254
+  and coalesce(length(company), 0) <= 120
+  and coalesce(array_length(hs_prefixes, 1), 0) <= 60
+  and coalesce(array_to_string(hs_prefixes, ','), '') ~ '^([0-9]{2,8}(,[0-9]{2,8})*)?$'
+  and coalesce(array_length(sectors, 1), 0) <= 5);
+
+-- OPTIONAL: also give a 14-day trial to people already on the free plan who never had one. Remove the "--" to run.
+-- update subscribers set plan = 'pro', trial = true, paid_until = current_date + 14 where plan = 'free' and status = 'active' and not trial;
