@@ -187,3 +187,103 @@ create policy "public signup" on subscribers for insert to anon with check (
 
 -- OPTIONAL: also give a 14-day trial to people already on the free plan who never had one. Remove the "--" to run.
 -- update subscribers set plan = 'pro', trial = true, paid_until = current_date + 14 where plan = 'free' and status = 'active' and not trial;
+
+-- =====================================================================================================
+-- v22 (29 Oct 2026): automatic upgrade after Razorpay payment + Firm client setup. Safe to re-run.
+-- =====================================================================================================
+
+-- 1. Every Razorpay payment we have processed (so a payment is never applied twice)
+create table if not exists payments (
+  razorpay_payment_id text primary key,
+  email       text not null,
+  plan        text not null,
+  days        int  not null,
+  amount_inr  numeric not null,
+  paid_until  date not null,
+  created_at  timestamptz default now()
+);
+alter table payments enable row level security;
+revoke all on payments from anon, authenticated;
+
+-- 2. Apply a payment: called only by the webhook function with the service key.
+--    Extends from the later of today or the current paid end date (if they were already paying), never shortens.
+create or replace function apply_payment(p_payment_id text, p_email text, p_plan text, p_days int, p_amount numeric)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare s subscribers%rowtype; base date; new_until date; existed boolean;
+begin
+  if exists (select 1 from payments where razorpay_payment_id = p_payment_id) then
+    return jsonb_build_object('status', 'duplicate');
+  end if;
+  p_email := lower(trim(p_email));
+  select * into s from subscribers where lower(email) = p_email;
+  existed := found;
+  if existed and s.plan = p_plan and not s.trial and s.paid_until is not null and s.paid_until > current_date then
+    base := s.paid_until;
+  else
+    base := current_date;
+  end if;
+  new_until := base + p_days;
+  if not existed then
+    insert into subscribers (email) values (p_email) returning * into s;
+  end if;
+  -- set the paid values explicitly (also overrides the sign-up trial trigger)
+  update subscribers set plan = p_plan, trial = false, paid_until = new_until, status = 'active',
+         unsubscribed_at = null where id = s.id;
+  insert into payments values (p_payment_id, p_email, p_plan, p_days, p_amount, new_until, now());
+  return jsonb_build_object('status', case when existed then 'upgraded' else 'created' end,
+                            'paid_until', new_until, 'token', (select unsubscribe_token from subscribers where lower(email) = p_email));
+end $$;
+revoke all on function apply_payment(text, text, text, int, numeric) from public, anon, authenticated;
+
+-- 3. Firm clients: up to 25 named clients per Firm subscriber, each with its own HS codes
+create table if not exists firm_clients (
+  id            uuid primary key default gen_random_uuid(),
+  subscriber_id uuid not null references subscribers(id) on delete cascade,
+  position      int  not null,
+  name          text not null check (length(name) between 1 and 80),
+  products      text check (coalesce(length(products), 0) <= 300),
+  hs_prefixes   text[] not null default '{}',
+  created_at    timestamptz default now()
+);
+create index if not exists firm_clients_sub_idx on firm_clients (subscriber_id);
+alter table firm_clients enable row level security;
+revoke all on firm_clients from anon, authenticated;
+
+-- Read / save clients with the secret token from the firm's own emails (no passwords, no public reads).
+create or replace function get_firm_clients(token uuid)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare s subscribers%rowtype;
+begin
+  select * into s from subscribers where unsubscribe_token = token and status = 'active';
+  if not found then return null; end if;
+  return jsonb_build_object('email', s.email, 'plan', s.plan, 'paid_until', s.paid_until,
+    'clients', coalesce((select jsonb_agg(jsonb_build_object('name', c.name, 'products', c.products, 'hs', c.hs_prefixes)
+                         order by c.position) from firm_clients c where c.subscriber_id = s.id), '[]'::jsonb));
+end $$;
+
+create or replace function save_firm_clients(token uuid, clients jsonb)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare s subscribers%rowtype; c jsonb; i int := 0; codes text[]; allc text[] := '{}';
+begin
+  select * into s from subscribers where unsubscribe_token = token and status = 'active';
+  if not found then return jsonb_build_object('ok', false, 'error', 'invalid link'); end if;
+  if s.plan <> 'firm' then return jsonb_build_object('ok', false, 'error', 'Client setup is part of the Firm plan'); end if;
+  if jsonb_typeof(clients) <> 'array' or jsonb_array_length(clients) > 25 then
+    return jsonb_build_object('ok', false, 'error', 'Up to 25 clients'); end if;
+  delete from firm_clients where subscriber_id = s.id;
+  for c in select * from jsonb_array_elements(clients) loop
+    i := i + 1;
+    select coalesce(array_agg(distinct x), '{}') into codes
+      from jsonb_array_elements_text(coalesce(c->'hs', '[]'::jsonb)) x where x ~ '^[0-9]{2,8}$';
+    if length(trim(coalesce(c->>'name', ''))) = 0 then continue; end if;
+    insert into firm_clients (subscriber_id, position, name, products, hs_prefixes)
+    values (s.id, i, left(trim(c->>'name'), 80), left(c->>'products', 300), codes[1:60]);
+    allc := allc || codes[1:60];
+  end loop;
+  -- the firm's alerts match the union of all its clients' codes
+  update subscribers set hs_prefixes = (select coalesce(array_agg(distinct x), '{}') from unnest(allc) x)
+  where id = s.id;
+  return jsonb_build_object('ok', true, 'clients', (select count(*) from firm_clients where subscriber_id = s.id));
+end $$;
+revoke all on function get_firm_clients(uuid), save_firm_clients(uuid, jsonb) from public;
+grant execute on function get_firm_clients(uuid), save_firm_clients(uuid, jsonb) to anon;

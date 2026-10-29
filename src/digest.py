@@ -66,18 +66,30 @@ def rank(notices: list[dict]) -> list[dict]:
                                           -(int((n.get("notice_date") or "0").replace("-", "")))))
 
 
-def render_email(sub: dict, notices: list[dict], weekly: bool) -> tuple[str, str]:
+def clients_for(n: dict, clients: list[dict]) -> list[str]:
+    """Firm plan: names of the clients whose HS codes this notice touches (prefix match either way)."""
+    n_hs = [str(x) for x in (n.get("hs_codes") or [])]
+    return [c["name"] for c in clients or []
+            if any(a.startswith(b) or b.startswith(a) for a in n_hs for b in (c.get("hs_prefixes") or []))]
+
+
+def render_email(sub: dict, notices: list[dict], weekly: bool, clients: list[dict] | None = None) -> tuple[str, str]:
     e = html.escape
     items = []
+    if clients:  # Firm: notices that touch a client first
+        notices = sorted(notices, key=lambda n: not clients_for(n, clients))
     for n in notices:
         s = n.get("summary") or {}
+        who = clients_for(n, clients) if clients else []
+        who_html = (f'<div style="font-size:13px;margin:6px 0;background:#eef4ff;padding:4px 8px;border-radius:4px">'
+                    f'<b>Affects your clients:</b> {e(", ".join(who))}</div>') if who else ""
         badge = {"high": "#c0392b", "medium": "#d68910", "low": "#7f8c8d"}.get(n.get("impact"), "#7f8c8d")
         deadline = f"<br><b>Deadline:</b> {e(s['deadline'])}{calendar_links(n)}" if s.get("deadline") else ""
         items.append(f"""
 <tr><td style="padding:14px 0;border-bottom:1px solid #eee">
 <span style="background:{badge};color:#fff;border-radius:3px;padding:1px 6px;font-size:11px">{e((n.get('impact') or '').upper())}</span>
 <span style="color:#777;font-size:12px"> {e(n['authority'])} {e(n['kind'])} {e(n.get('number') or '')} · {e(n.get('notice_date') or '')}</span>
-<div style="font-size:16px;font-weight:600;margin:6px 0">{e(s.get('headline') or n['title'])}</div>
+<div style="font-size:16px;font-weight:600;margin:6px 0">{e(s.get('headline') or n['title'])}</div>{who_html}
 <div style="font-size:14px;color:#333">{e(s.get('summary') or '')}</div>
 <div style="font-size:13px;color:#333;margin-top:6px"><b>Action:</b> {e(s.get('action_required') or '—')}{deadline}</div>
 <div style="font-size:13px;color:#555;margin-top:4px">{e(s.get('headline_hi') or '')}</div>
@@ -113,7 +125,8 @@ def email_footer(sub: dict) -> str:
             f'You get this email because you subscribed to {e(SITE_NAME)} at {e(SITE_URL)}. '
             f'<a href="{SITE_URL}/unsubscribe.html?t={t}">Unsubscribe</a> · '
             f'<a href="{SITE_URL}/unsubscribe.html?t={t}&amp;delete=1">Delete my data</a> · '
-            f'<a href="{SITE_URL}/privacy.html">Privacy</a><br>{company}, {place} · {e(contact_email())}</p>')
+            + (f'<a href="{SITE_URL}/clients.html?t={t}">Manage your clients</a> · ' if sub.get("plan") == "firm" else "")
+            + f'<a href="{SITE_URL}/privacy.html">Privacy</a><br>{company}, {place} · {e(contact_email())}</p>')
 
 
 def send_email(to: str, subject: str, body: str, unsub_url: str) -> None:
@@ -196,11 +209,20 @@ def render_welcome(sub: dict, notices: list[dict]) -> tuple[str, str]:
     intro = (f"<p>Your <b>{TRIAL_DAYS}-day free trial</b> has started, until {e(str(sub.get('paid_until') or ''))}. "
              "During the trial you get an email the same day a DGFT notice touches your HS codes. "
              "No card, nothing is charged. After the trial you move to the free weekly digest unless you choose a paid plan.</p>"
-             if trial else "<p>You are subscribed to the free weekly digest of important DGFT changes.</p>")
+             if trial else
+             (f"<p>Your <b>{e(str(sub.get('plan')).title())} plan</b> is active until {e(str(sub.get('paid_until') or ''))}. "
+              "You get an email the same day a DGFT notice touches your HS codes.</p>"
+              + (f'<p><b>Firm plan:</b> add your clients and their products here (private link): '
+                 f'<a href="{SITE_URL}/clients.html?t={sub.get("unsubscribe_token", "")}">Manage your clients</a></p>'
+                 if sub.get("plan") == "firm" else "")
+              if sub.get("plan") in ("pro", "firm") and sub.get("paid_until")
+              else "<p>You are subscribed to the free weekly digest of important DGFT changes.</p>"))
     body = f"""<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto">
 <h2 style="margin-bottom:0">{e(SITE_NAME)}</h2><p>Namaste,</p>{intro}{found}
 <p style="font-size:13px;color:#555">Want different products or codes? Just reply to this email.</p>{email_footer(sub)}</div>"""
-    subj = f"Your {TRIAL_DAYS}-day free trial has started" if trial else f"Welcome to {SITE_NAME}"
+    subj = (f"Your {TRIAL_DAYS}-day free trial has started" if trial
+            else f"Your {str(sub.get('plan')).title()} plan is active" if sub.get("plan") in ("pro", "firm")
+            else f"Welcome to {SITE_NAME}")
     return f"{subj}: {len(notices[:10])} recent notice(s) for your codes", body
 
 

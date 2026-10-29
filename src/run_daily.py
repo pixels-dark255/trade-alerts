@@ -141,7 +141,15 @@ def publish(sectors, db, now, report, errors) -> int:
             continue
         if not items:
             continue
-        subject, body = digest.render_email(sub, items, weekly=not paid)
+        clients = []
+        if sub["plan"] == "firm":
+            try:
+                r = db.c.get("/firm_clients", params={"select": "name,hs_prefixes", "subscriber_id": f"eq.{sub['id']}",
+                                                      "order": "position"})
+                clients = r.json() if r.status_code == 200 else []
+            except Exception as ex:
+                errors.append(f"firm clients {sub['id']}: {ex!r}")
+        subject, body = digest.render_email(sub, items, weekly=not paid, clients=clients)
         if DRY:
             sent += 1
             continue
@@ -159,6 +167,8 @@ def publish(sectors, db, now, report, errors) -> int:
         report.append(f"site pages: {sitegen.build(db.all_notices(), sectors)}")
         import pilots
         report.append(f"pilot pages: {len(pilots.build('public'))}")
+        import extras
+        report.append(f"extra pages: {len(extras.build('public'))}")
         since = (now - timedelta(hours=26)).isoformat()
         r = db.c.get("/pilot_interest", params={"select": "offer,name,company,email,phone,details", "created_at": f"gte.{since}"})
         if r.status_code == 200:
